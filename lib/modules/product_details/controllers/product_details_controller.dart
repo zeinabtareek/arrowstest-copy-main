@@ -20,7 +20,7 @@ class ProductDetailsController extends GetxController {
   RxDouble productPrice = 0.0.obs;
   RxDouble orderPrice = 0.0.obs;
   Drink selectedDrink = Drink();
-  Sizes selectedSize = Sizes();
+ late  Sizes selectedSize ;
 var value ;
    List<bool> selectedAdditions = <bool>[].obs;
   List<bool> selectedComponents = <bool>[].obs;
@@ -90,6 +90,7 @@ var value ;
     // fSizes.clear();
     await getAllRestaurantDrinks();
     otherAddition.value = List.filled(drinks!.length, false);
+
     super.onInit();
   }
 

@@ -18,6 +18,15 @@ class User {
     id = json['id'];
     password = json['password'];
     userDeviceToken = json['device_token'];
+    // address = json["user_adffdress_list"] ?? '';
+
+
+    if (json['user_address_list'] != null) {
+      address = <UserAddress>[];
+      json['user_address_list'].forEach((v) {
+        address!.add(new UserAddress.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {

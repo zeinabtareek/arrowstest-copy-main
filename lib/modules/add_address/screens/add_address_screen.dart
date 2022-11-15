@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:collection';
 import 'package:arrows/components/arrows_app_bar.dart';
@@ -7,6 +6,7 @@ import 'package:arrows/constants/styles.dart';
 import 'package:arrows/helpers/geo_locator_helper.dart';
 import 'package:arrows/helpers/shared_prefrences.dart';
 import 'package:arrows/modules/add_address/controllers/add_address_controller.dart';
+import 'package:arrows/modules/reciept/screens/reciept_screen.dart';
 import 'package:arrows/modules/sign_up/models/user_model.dart';
 import 'package:arrows/modules/where_to_deliver/controllers/Where_to_controller.dart';
 import 'package:arrows/modules/where_to_deliver/models/firebase_address_model.dart';
@@ -34,10 +34,12 @@ class AddNewAddress extends StatelessWidget {
     final landScape =
         MediaQuery.of(context).orientation == Orientation.landscape;
     return WillPopScope(
-      onWillPop: ()async{
+      onWillPop: () async {
         return disposeMethod();
       },
       child: Scaffold(
+        // resizeToAvoidBottomInset: true,
+
         backgroundColor: kPrimaryColor,
         appBar: ArrowsAppBar(
           "specify_address".tr,
@@ -68,52 +70,72 @@ class AddNewAddress extends StatelessWidget {
                                   ),
                                 ),
                               )
-                            : GoogleMap(
-                                gestureRecognizers: Set()
-                                  ..add(Factory<PanGestureRecognizer>(
-                                      () => PanGestureRecognizer()))
-                                  ..add(Factory<ScaleGestureRecognizer>(
-                                      () => ScaleGestureRecognizer()))
-                                  ..add(Factory<TapGestureRecognizer>(
-                                      () => TapGestureRecognizer()))
-                                  ..add(Factory<VerticalDragGestureRecognizer>(
-                                      () => VerticalDragGestureRecognizer())),
-                                mapType: MapType.normal,
-                                zoomControlsEnabled: true,
-                                myLocationEnabled: true,
-                                myLocationButtonEnabled: true,
-                                zoomGesturesEnabled: true,
-                                markers: controller.markers.toSet(),
-                                mapToolbarEnabled: true,
-                                initialCameraPosition: CameraPosition(
-                                    target: MapController.initialPosition!,
-                                    zoom: 15),
-                                onCameraMove: controller.onCameraMove,
-                                onMapCreated:
-                                    (GoogleMapController gcontroller) async {
-                                   controller.markers.add(Marker(
-                                    markerId: MarkerId(
-                                        CacheHelper.getDataToSharedPrefrence('restaurantBranchID')),
-                                     position: LatLng(
-                                        double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),
-                                        double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
-                                    infoWindow: InfoWindow(
-                                      title: 'Location',
-                                      snippet:
-                                          CacheHelper.getDataToSharedPrefrence(
-                                              'restaurantBranchID'),
-                                    ),
-                                  )); // controller.currentLocation!.latitude, controller.currentLocation!.longitude)
-                                   controller
-                                      .showPinsOnMap(controller.currentLocation!);
-                                  controller.controller.complete(gcontroller);
-                                },
-                                onTap: (LatLng loc) {
-                                  print('${loc.latitude}, ${loc.longitude}');
-                                  controller.getUserLocation(loc);
-                                   controller.showPinsOnMap(loc);
-                                 },
-                              ),
+                            : FutureBuilder(
+                                future: mapController.mapFuture,
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData) {
+                                    print("empty");
+                                    return CircularProgressIndicator(
+                                      color: mainColor,
+                                    );
+                                  }
+
+                                  return GoogleMap(
+                                    gestureRecognizers: Set()
+                                      ..add(Factory<PanGestureRecognizer>(
+                                          () => PanGestureRecognizer()))
+                                      ..add(Factory<ScaleGestureRecognizer>(
+                                          () => ScaleGestureRecognizer()))
+                                      ..add(Factory<TapGestureRecognizer>(
+                                          () => TapGestureRecognizer()))
+                                      ..add(Factory<
+                                              VerticalDragGestureRecognizer>(
+                                          () =>
+                                              VerticalDragGestureRecognizer())),
+                                    mapType: MapType.normal,
+                                    zoomControlsEnabled: true,
+                                    myLocationEnabled: true,
+                                    myLocationButtonEnabled: true,
+                                    zoomGesturesEnabled: true,
+                                    markers: controller.markers.toSet(),
+                                    mapToolbarEnabled: true,
+                                    initialCameraPosition: CameraPosition(
+                                        target: MapController.initialPosition!,
+                                        zoom: 15),
+                                    onCameraMove: controller.onCameraMove,
+                                    onMapCreated: (GoogleMapController
+                                        gcontroller) async {
+                                      controller.markers.add(Marker(
+                                        markerId: MarkerId(CacheHelper
+                                            .getDataToSharedPrefrence(
+                                                'restaurantBranchID')),
+                                        position: LatLng(
+                                            double.parse(CacheHelper
+                                                .getDataToSharedPrefrence(
+                                                    'restaurantBranchLat')),
+                                            double.parse(CacheHelper
+                                                .getDataToSharedPrefrence(
+                                                    'restaurantBranchLng'))),
+                                        infoWindow: InfoWindow(
+                                          title: 'Location',
+                                          snippet: CacheHelper
+                                              .getDataToSharedPrefrence(
+                                                  'restaurantBranchID'),
+                                        ),
+                                      )); // controller.currentLocation!.latitude, controller.currentLocation!.longitude)
+                                      controller.showPinsOnMap(
+                                          controller.currentLocation!);
+                                      controller.controller
+                                          .complete(gcontroller);
+                                    },
+                                    onTap: (LatLng loc) {
+                                      print(
+                                          '${loc.latitude}, ${loc.longitude}');
+                                      controller.getUserLocation(loc);
+                                      controller.showPinsOnMap(loc);
+                                    },
+                                  );
+                                }),
                       ),
                     ),
                   ),
@@ -125,16 +147,18 @@ class AddNewAddress extends StatelessWidget {
                         top: 10.h,
                       ),
                       child: Center(
-                        child: Text(
-                          '${controller.address.street}${controller.address.administrativeArea}${controller.address.country}'
-                              .tr,
-                          style: TextStyle(
-                              color: kPrimaryColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.sp),
-                        ),
+                        child: (controller.address != null &&
+                                controller.address != 'null')
+                            ? Text(
+                                '${controller.address.street}${controller.address.administrativeArea}${controller.address.country}'
+                                    .tr,
+                                style: TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.sp),
+                              )
+                            : Text(' '),
                       ),
-
                       height: 50.h,
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -151,14 +175,13 @@ class AddNewAddress extends StatelessWidget {
                         ),
                         color: mainColor,
                       ),
-                     ),
-
+                    ),
                   ),
                   Container(
-                     padding:EdgeInsets.only(top: 10.h, bottom: 10.h,left: 5.w,right: 5.w),
+                    padding: EdgeInsets.only(
+                        top: 10.h, bottom: 10.h, left: 5.w, right: 5.w),
                     margin: EdgeInsets.only(top: 0.h, bottom: 10.h),
                     decoration: CommonStyles.customBoxDecoration,
-
                     child: Column(
                       children: [
                         /*************firstRow***********/
@@ -182,21 +205,39 @@ class AddNewAddress extends StatelessWidget {
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: SizedBox(
-                                      child:  DropdownButton<dynamic>(
+                                      child: DropdownButton<dynamic>(
                                           underline: SizedBox(),
                                           isExpanded: true,
-                                          borderRadius: BorderRadius.circular(8.r),
-                                          style: TextStyle(fontSize: 11.sp,color: kPrimaryColor),
-                                          items: whereToController.deliveryAreaList!.map((element) {
-                                            return DropdownMenuItem(child: Text('${element.area}'.tr,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22.sp,color: kPrimaryColor),) ,
-                                              value: element,);
+                                          borderRadius:
+                                              BorderRadius.circular(8.r),
+                                          style: TextStyle(
+                                              fontSize: 11.sp,
+                                              color: kPrimaryColor),
+                                          items: whereToController
+                                              .deliveryAreaList!
+                                              .map((element) {
+                                            return DropdownMenuItem(
+                                              child: Text(
+                                                '${element.area}'.tr,
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 22.sp,
+                                                    color: kPrimaryColor),
+                                              ),
+                                              value: element,
+                                            );
                                           }).toList(),
-                                          value: whereToController.selectedDropDownValue,
-                                          onChanged: (value){
-                                        whereToController.selectedDropDownValue = value;
-                                        whereToController.selectedAreaPrice = value.price;
-                                        whereToController.update();
-                                      }),
+                                          value: whereToController
+                                              .selectedDropDownValue,
+                                          onChanged: (value) {
+                                            whereToController
+                                                .selectedDropDownValue = value;
+                                            whereToController.selectedAreaPrice
+                                                .value = value.price;
+                                            whereToController.update();
+                                            print(whereToController
+                                                .selectedDropDownValue?.price);
+                                          }),
                                     ),
                                   );
                                 }),
@@ -219,14 +260,15 @@ class AddNewAddress extends StatelessWidget {
 
                         /**************test***********/
                         SizedBox(
-                          height: 10.h,),
+                          height: 10.h,
+                        ),
                         Row(
                           children: [
                             /******************apartment number*****************/
                             Expanded(
                               child: Padding(
-                                padding: EdgeInsets.only(
-                                  top: 10.h, bottom: 10.h),
+                                padding:
+                                    EdgeInsets.only(top: 10.h, bottom: 10.h),
                                 child: CustomAddressTextField(
                                   textEditingController:
                                       whereToController.floorNumber,
@@ -253,7 +295,6 @@ class AddNewAddress extends StatelessWidget {
                         SizedBox(
                           height: 10.h,
                         ),
-
                         Container(
                           padding: EdgeInsets.only(top: 10.h, bottom: 10.h),
                           child: CustomAddressTextField(
@@ -263,321 +304,192 @@ class AddNewAddress extends StatelessWidget {
                             labelText: "address",
                           ),
                         ),
-
                       ],
                     ),
                   ),
+                  Container(
+                    width: 250.w,
+                    decoration: CommonStyles.customBoxDecoration,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: mainColor,
+                      ),
+                      onPressed: () async {
+                        LocationPermission permission =
+                            await Geolocator.checkPermission();
+                        if (whereToController.areaNumber.text.isEmpty &&
+                            whereToController.buildNumber.text.isEmpty &&
+                            whereToController.floorNumber.text.isEmpty) {
+                          Get.defaultDialog(
+                            title: '',
+                            content: Text('data'.tr),
+                          );
+                        } else if (whereToController
+                                .selectedDropDownValue!.id ==
+                            '0') {
+                          Get.defaultDialog(
+                              content: Text('neighbourhood'.tr), title: "");
+                        } else if ((permission == LocationPermission.denied ||
+                                permission ==
+                                    LocationPermission.deniedForever) &&
+                            whereToController
+                                .addressTextController.text.isEmpty) {
+                          Get.defaultDialog(
+                              title: "", content: Text("enter_address".tr));
+                        } else if ((permission == LocationPermission.denied ||
+                                permission ==
+                                    LocationPermission.deniedForever) &&
+                            whereToController
+                                .addressTextController.text.isNotEmpty) {
+                          UserAddress newAddress=UserAddress();
+                          newAddress = UserAddress(
+                              address:
+                                  whereToController.addressTextController.text,
+                              buildNumber: whereToController.buildNumber.text,
+                              floorNumber: whereToController.floorNumber.text,
+                              areaNumber: whereToController.areaNumber.text,
+                              // landmark: whereToController.landscape.text,
+                              lat: "",
+                              lng: "",
+                              area: whereToController.selectedDropDownValue);
 
+                          var user = User(
+                              password: CacheHelper.loginShared!.password,
+                              phone: CacheHelper.loginShared!.phone,
+                              name: CacheHelper.loginShared!.name,
+                              address: addAddressController.addresses);
 
-                  // Container(
-                  //   width: 250.w,
-                  //   decoration: CommonStyles.customBoxDecoration,
-                  //
-                  //    child: TextButton(
-                  //     style: TextButton.styleFrom(
-                  //       backgroundColor: mainColor,
-                  //     ),
-                  //     onPressed: () async {
-                  //       LocationPermission permission =
-                  //           await Geolocator.checkPermission();
-                  //       if (whereToController.areaNumber.text.isEmpty &&
-                  //           whereToController.buildNumber.text.isEmpty &&
-                  //           whereToController.floorNumber.text.isEmpty) {
-                  //         Get.defaultDialog(
-                  //           title: '',
-                  //           content: Text('data'.tr),
-                  //         );
-                  //       } else if (whereToController.selectedDropDownValue!.id ==
-                  //           '0') {
-                  //         Get.defaultDialog(
-                  //             content: Text('neighbourhood'.tr), title: "");
-                  //       } else if ((permission == LocationPermission.denied ||
-                  //               permission == LocationPermission.deniedForever) &&
-                  //           whereToController
-                  //               .addressTextController.text.isEmpty) {
-                  //         Get.defaultDialog(
-                  //             title: "", content: Text("enter_address".tr));
-                  //       } else if ((permission == LocationPermission.denied ||
-                  //               permission == LocationPermission.deniedForever) &&
-                  //           whereToController
-                  //               .addressTextController.text.isNotEmpty) {
-                  //         var newAddress = UserAddress(
-                  //             address:
-                  //                 whereToController.addressTextController.text,
-                  //             buildNumber: whereToController.buildNumber.text,
-                  //             floorNumber: whereToController.floorNumber.text,
-                  //             areaNumber: whereToController.areaNumber.text,
-                  //             // landmark: whereToController.landscape.text,
-                  //             lat: "",
-                  //             lng: "",
-                  //             area: whereToController.selectedDropDownValue);
-                  //
-                  //         var user = User(
-                  //             password: CacheHelper.loginShared!.password,
-                  //             phone: CacheHelper.loginShared!.phone,
-                  //             name: CacheHelper.loginShared!.name,
-                  //             // points: CacheHelper.loginShared!.points,
-                  //             // id: CacheHelper.loginShared!.id,
-                  //             address: addAddressController.addresses);
-                  //
-                  //         await FirebaseDatabase.instance
-                  //             .reference()
-                  //             .child("Users")
-                  //             // .child(CacheHelper.loginShared!.phone.toString())
-                  //             .child(
-                  //                 CacheHelper.getDataToSharedPrefrence('userID'))
-                  //             .child("user_address_list")
-                  //             .get()
-                  //             .then((snapshot) {
-                  //           if (snapshot.exists) {
-                  //             for (Map<dynamic, dynamic> data in snapshot.value) {
-                  //               addAddressController.addresses
-                  //                   .add(UserAddress.fromJson(data));
-                  //             }
-                  //           }
-                  //         });
-                  //         addAddressController.addresses.add(newAddress);
-                  //         print(
-                  //             "==================${addAddressController.addresses[0].address}");
-                  //
-                  //         ///adds to the index 0 only
-                  //         FirebaseDatabase.instance
-                  //             .reference()
-                  //             .child("Users")
-                  //             .child(CacheHelper.getDataToSharedPrefrence('userID'))
-                  //             // .child(CacheHelper.loginShared!.phone.toString())
-                  //             .set(user.toJson());
-                  //
-                  //         Get.back();
-                  //         whereToController.buildNumber.clear();
-                  //         whereToController.floorNumber.clear();
-                  //         whereToController.landscape.clear();
-                  //         whereToController.areaNumber.clear();
-                  //         whereToController.addressTextController.clear();
-                  //       } else if (permission == LocationPermission.always ||
-                  //           permission == LocationPermission.whileInUse) {
-                  //         addAddressController.addresses.clear();
-                  //         Position position =
-                  //             await GeoLocatorHelper.determinePosition();
-                  //         addAddressController.location =
-                  //             'Lat: ${position.latitude}, Long: ${position.longitude}';
-                  //         await GeoLocatorHelper.getAddressFromLatLong(position);
-                  //         print(position.latitude);
-                  //
-                  //         var newAddress = UserAddress(
-                  //             address: GeoLocatorHelper.address,
-                  //             buildNumber: whereToController.buildNumber.text,
-                  //             floorNumber: whereToController.floorNumber.text,
-                  //             landmark: whereToController.landscape.text,
-                  //             areaNumber: whereToController.areaNumber.text,
-                  //             lat: position.latitude.toString(),
-                  //             lng: position.longitude.toString(),
-                  //             area: whereToController.selectedDropDownValue);
-                  //
-                  //         var user = User(
-                  //             password: CacheHelper.loginShared!.password,
-                  //             phone: CacheHelper.loginShared!.phone,
-                  //             name: CacheHelper.loginShared!.name,
-                  //             address: addAddressController.addresses);
-                  //
-                  //         await FirebaseDatabase.instance
-                  //             .reference()
-                  //             .child("Users")
-                  //             .child(CacheHelper.getDataToSharedPrefrence('userID'))
-                  //             // .child(CacheHelper.loginShared!.phone.toString())
-                  //             .child("user_address_list")
-                  //             .get()
-                  //             .then((snapshot) {
-                  //           if (snapshot.exists) {
-                  //             for (Map<dynamic, dynamic> data in snapshot.value) {
-                  //               addAddressController.addresses
-                  //                   .add(UserAddress.fromJson(data));
-                  //             }
-                  //           }
-                  //         });
-                  //         addAddressController.addresses.add(newAddress);
-                  //         print(
-                  //             "==================${addAddressController.addresses[0].address}");
-                  //
-                  //         ///adds to the index 0 only
-                  //         FirebaseDatabase.instance
-                  //             .reference()
-                  //             .child("Users")
-                  //             .child(CacheHelper.getDataToSharedPrefrence('userID'))
-                  //             // .child(CacheHelper.loginShared!.phone.toString())
-                  //             .set(user.toJson());
-                  //
-                  //         Get.back();
-                  //         whereToController.buildNumber.clear();
-                  //         whereToController.floorNumber.clear();
-                  //         whereToController.landscape.clear();
-                  //         whereToController.areaNumber.clear();
-                  //         whereToController.addressTextController.clear();
-                  //         whereToController.update();
-                  //         disposeMethod();
-                  //
-                  //       }
-                  //     },
-                  //     child: Text(
-                  //       "add_address".tr,
-                  //       style: TextStyle(
-                  //           color: kPrimaryColor,
-                  //           fontWeight: FontWeight.bold,
-                  //           fontSize: 16.sp),
-                  //     ),
-                  //   ),
-                  // ),
+                          await FirebaseDatabase.instance
+                              .reference()
+                              .child("Users")
+                              .child(CacheHelper.getDataToSharedPrefrence('userID'))
+                             // .child(CacheHelper.loginShared!.phone.toString())
+                              .child("user_address_list")
+                              .get()
+                              .then((  snapshot) {
+                          if (snapshot.exists) {
+                            for (Map<dynamic, dynamic> data in snapshot.value) {
+                              addAddressController.addresses
+                                  .add(UserAddress.fromJson(data));
+                            }}
+                          });
+                          addAddressController.addresses.add(newAddress);
+                          print("==================${addAddressController.addresses[0].address}");
 
-              Container(
-                  width: 250.w,
-                  decoration: CommonStyles.customBoxDecoration,
+                          ///adds to the index 0 only
+                          FirebaseDatabase.instance
+                              .reference()
+                              .child("Users")
+                              .child(CacheHelper.getDataToSharedPrefrence(
+                                  'userID'))
+                              .set(user.toJson());
+                          CacheHelper.saveDataToSharedPrefrence(
+                              'dropDownValuePrice',
+                              whereToController.selectedDropDownValue?.price);
 
-                   child: TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: mainColor,
-                    ),
-                    onPressed: () async {
-                          LocationPermission permission = await Geolocator.checkPermission();
-                          if(whereToController.areaNumber.text.isEmpty && whereToController.buildNumber.text.isEmpty && whereToController.floorNumber.text.isEmpty){
-                            Get.defaultDialog(title: '' , content: Text('data'.tr),);
-                          }
-                          else if(whereToController.selectedDropDownValue!.id == '0')
-                          {
-                            Get.defaultDialog(content:  Text(
-                                'neighbourhood'.tr),title: "");
+                          Get.to(ReceiptScreen(
+                              selectedAreaPrice:
+                                  CacheHelper.getDataToSharedPrefrence(
+                                      'dropDownValuePrice')));
+                          // Get.back();
+                          whereToController.buildNumber.clear();
+                          whereToController.floorNumber.clear();
+                          whereToController.landscape.clear();
+                          whereToController.areaNumber.clear();
+                          whereToController.addressTextController.clear();
+                        } else if (permission == LocationPermission.always ||
+                            permission == LocationPermission.whileInUse) {
+                          addAddressController.addresses.clear();
+                          Position position =
+                              await GeoLocatorHelper.determinePosition();
+                          addAddressController.location =
+                              'Lat: ${position.latitude}, Long: ${position.longitude}';
+                          await GeoLocatorHelper.getAddressFromLatLong(
+                              position);
+                          print(position.latitude);
+                          UserAddress newAddress=UserAddress();
+                            newAddress = UserAddress(
+                              address:'${mapController.address.street}${mapController.address.administrativeArea}${mapController.address.country}',
+                              buildNumber: whereToController.buildNumber.text,
+                              floorNumber: whereToController.floorNumber.text,
+                              // landmark: whereToController.landscape.text,
+                              areaNumber: whereToController.areaNumber.text,
+                              lat: position.latitude.toString(),
+                              lng: position.longitude.toString(),
+                              area: whereToController.selectedDropDownValue);
 
-                          }
-                          else if((permission == LocationPermission.denied || permission == LocationPermission.deniedForever ) && whereToController.addressTextController.text.isEmpty){
-                            Get.defaultDialog(title: "",content: Text("enter_address".tr));
-                          }
-                          else if((permission == LocationPermission.denied || permission == LocationPermission.deniedForever ) && whereToController.addressTextController.text.isNotEmpty)
-                          {
-                            var newAddress = UserAddress(
-                                address: whereToController.addressTextController.text,
-                                buildNumber: whereToController.buildNumber.text,
-                                floorNumber: whereToController.floorNumber.text,
-                                areaNumber: whereToController.areaNumber.text,
-                                // landmark: whereToController.landscape.text,
-                                lat:"",
-                                lng: "",
-                                area: whereToController.selectedDropDownValue
-                            );
+                          var user = User(
+                              password: CacheHelper.loginShared!.password,
+                              phone: CacheHelper.loginShared!.phone,
+                              name: CacheHelper.loginShared!.name,
+                              address: addAddressController.addresses);
 
-                            var user = User(
-                                password: CacheHelper.loginShared!.password,
-                                phone: CacheHelper.loginShared!.phone,
-                                name: CacheHelper.loginShared!.name,
-                                address: addAddressController.addresses);
-
-                            await FirebaseDatabase.instance
-                                .reference()
-                                .child("Users")
-                                .child(CacheHelper.getDataToSharedPrefrence('userID'))
-
-                               // .child(CacheHelper.loginShared!.phone.toString())
-                                .child("user_address_list")
-                                .get()
-                                .then((  snapshot) {
-                              if (snapshot.exists) {
+                          await FirebaseDatabase.instance
+                              .reference()
+                              .child("Users")
+                              .child(CacheHelper.getDataToSharedPrefrence('userID'))
+                              // .child(CacheHelper.loginShared!.phone.toStrin g())
+                              .child("user_address_list")
+                              .get()
+                              .then((DataSnapshot  snapshot) {
+                            if (snapshot.exists) {
+                            //   snapshot.value.forEach((Map<dynamic, dynamic> v) {
                                 for (Map<dynamic, dynamic> data in snapshot.value) {
-                                  addAddressController.addresses
-                                      .add(UserAddress.fromJson(data));
-                                }
+                                addAddressController.addresses
+                                    .add(UserAddress.fromJson(data));
+                                addAddressController.addresses.add(newAddress);
+
                               }
-                            });
-                            addAddressController.addresses.add(newAddress);
-                            print("==================${addAddressController.addresses[0].address}");
+                            }
 
-                            ///adds to the index 0 only
-                            FirebaseDatabase.instance
-                                .reference()
-                                .child("Users")
-                          .child(CacheHelper.getDataToSharedPrefrence('userID'))
-                                // .child(CacheHelper.loginShared!.phone.toString())
-                                .set(user.toJson());
+                          });
+                          addAddressController.addresses.add(newAddress);
+                          print(
+                              "==================${addAddressController.addresses[0].address}");
+                          /*********newTry*******/
 
-                            Get.back();
-                            whereToController.buildNumber.clear();
-                            whereToController.floorNumber.clear();
-                            whereToController.landscape.clear();
-                            whereToController.areaNumber.clear();
-                            whereToController.addressTextController.clear();
-                          }
+                          ///adds to the index 0 only
+                           await FirebaseDatabase.instance
+                              .reference()
+                              .child("Users")
+                              .child(CacheHelper.getDataToSharedPrefrence(
+                                  'userID'))
+                              // .child("user_address_list")
+                              // .set(userAddress.toJson());
+                               .set(user.toJson()).then((value) {
+                             return    Get.snackbar('Done', 'an  address added successfully ',
+                                 snackPosition: SnackPosition.TOP,
+                                 backgroundColor: kPrimaryColor,
+                                 duration: Duration(seconds: 2),
+                                 dismissDirection: DismissDirection.startToEnd,
+                                 barBlur: 10,
+                                 colorText: mainColor);
+                           });
+                          CacheHelper.saveDataToSharedPrefrence(
+                              'dropDownValuePrice',
+                              whereToController.selectedDropDownValue?.price);
 
-                          else if(permission == LocationPermission.always || permission == LocationPermission.whileInUse){
+                          // Get.back();
+                          Get.to(ReceiptScreen(selectedAreaPrice: CacheHelper.getDataToSharedPrefrence('dropDownValuePrice')));
+                          whereToController.buildNumber.clear();
+                          whereToController.floorNumber.clear();
+                           whereToController.landscape.clear();
+                          whereToController.areaNumber.clear();
+                          whereToController.addressTextController.clear();
+                          whereToController.update();
+                          disposeMethod();}
+                        },
 
-                            addAddressController.addresses.clear();
-                            Position position =
-                            await GeoLocatorHelper.determinePosition();
-                            addAddressController.location =
-                            'Lat: ${position.latitude}, Long: ${position.longitude}';
-                            await GeoLocatorHelper.getAddressFromLatLong(position);
-                            print(position.latitude);
+                      child: Text(
+                        "add_address".tr,
+                        style: TextStyle(
+                            color: kPrimaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.sp),
+                      ),
 
-                            var newAddress = UserAddress(
-                                address: GeoLocatorHelper.address,
-                                buildNumber: whereToController.buildNumber.text,
-                                floorNumber: whereToController.floorNumber.text,
-                                landmark: whereToController.landscape.text,
-                                areaNumber: whereToController.areaNumber.text,
-                                lat: position.latitude.toString(),
-                                lng: position.longitude.toString(),
-                                area: whereToController.selectedDropDownValue
-                            );
-
-                            var user = User(
-                                password: CacheHelper.loginShared!.password,
-                                phone: CacheHelper.loginShared!.phone,
-                                name: CacheHelper.loginShared!.name,
-                                address: addAddressController.addresses);
-
-                            await FirebaseDatabase.instance
-                                .reference()
-                                .child("Users")
-                                .child(CacheHelper.getDataToSharedPrefrence('userID'))
-                                // .child(CacheHelper.loginShared!.phone.toStrin g())
-                                .child("user_address_list")
-                                .get()
-                                .then((  snapshot) {
-                              if (snapshot.exists) {
-                                for (Map<dynamic, dynamic> data in snapshot.value) {
-                                  addAddressController.addresses
-                                      .add(UserAddress.fromJson(data));
-                                }
-                              }
-                            });
-                            addAddressController.addresses.add(newAddress);
-                            print("==================${addAddressController.addresses[0].address}");
-
-                            ///adds to the index 0 only
-                            FirebaseDatabase.instance
-                                .reference()
-                                .child("Users")
-                                .child(CacheHelper.getDataToSharedPrefrence('userID'))
-                                // .child(CacheHelper.loginShared!.phone.toString())
-                                .set(user.toJson());
-
-            Get.back();
-            whereToController.buildNumber.clear();
-            whereToController.floorNumber.clear();
-            whereToController.landscape.clear();
-            whereToController.areaNumber.clear();
-            whereToController.addressTextController.clear();
-            whereToController.update();
-            disposeMethod();
-
-          }
-        },
-        child: Text(
-          "add_address".tr,
-          style: TextStyle(
-              color: kPrimaryColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp),
-        ),
-      ),
-    ),
-
+                  ),
+                  ),
                 ],
               ),
             ),
@@ -587,18 +499,20 @@ class AddNewAddress extends StatelessWidget {
     );
   }
 
-    disposeMethod() {
-     print('yamosaheellll');
-      Get.back();
-      whereToController.buildNumber.clear();
-      whereToController.floorNumber.clear();
-      whereToController.landscape.clear();
-      whereToController.areaNumber.clear();
-      whereToController.selectedDropDownValue;
-      whereToController.addressTextController.clear();
-      mapController.dispose();
-      mapController.onClose();
-      mapController.markers[mapController.myMarkerId] = Marker(markerId: MarkerId(mapController.myMarkerId.toString()), visible: false);
-
+  disposeMethod() {
+    print('yamosaheellll');
+    Get.back();
+    whereToController.buildNumber.clear();
+    whereToController.floorNumber.clear();
+    whereToController.landscape.clear();
+    whereToController.areaNumber.clear();
+    whereToController.selectedDropDownValue;
+    whereToController.addressTextController.clear();
+    mapController.dispose();
+    mapController.onClose();
+    mapController.markers[mapController.myMarkerId] = Marker(
+        markerId: MarkerId(mapController.myMarkerId.toString()),
+        visible: false);
   }
 }
+/***jj*/

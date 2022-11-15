@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../constants/colors.dart';
+
 
 class WhereToController extends GetxController {
   RxBool showPickUpBranches = true.obs;
@@ -41,11 +43,21 @@ class WhereToController extends GetxController {
   @override
   void dispose() {
     selectedDropDownValue;
+    areaNumber.text;
+    buildNumber.text;
+    floorNumber.text;
+    landscape.text;
+    addressTextController.text;
   }
 
   @override
   void onClose() {
     selectedDropDownValue;
+    areaNumber.text;
+    buildNumber.text;
+    floorNumber.text;
+    landscape.text;
+    addressTextController.text;
   }
 
   Future<void> getAllBranchAddresses() async {
@@ -84,7 +96,7 @@ class WhereToController extends GetxController {
   //       // .child(CacheHelper.getDataToSharedPrefrence('userID') )
   //       .child("area");
   // }
-  String selectedAreaPrice = '';
+   final selectedAreaPrice = ''.obs;
 
 
 
@@ -99,7 +111,7 @@ class WhereToController extends GetxController {
     // .child('branch1')
     // .child('-NCAoy4evO1S9m0g8hvh')
         .child(CacheHelper.getDataToSharedPrefrence('restaurantBranchID'));
-    ref.once().then((DataSnapshot snapshot){
+      ref.once().then((DataSnapshot snapshot){
       print(snapshot.value);
       print(snapshot.key);
       snapshot.value.forEach((key,values) {
@@ -133,15 +145,17 @@ class WhereToController extends GetxController {
   async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateID = dateFormat.format(DateTime.now());
+
+    (cartController.discountCodeTextController.text.isNotEmpty&&cartController.discountResponse.data == null )?
+    cartController.discountResponse.data!.value= int.tryParse(cartController.discountValue.value.toString()) :0.0;
+    var x=CacheHelper.getDataToSharedPrefrence('dropDownValuePrice');
+
     PostedOrder.order
       ..branch = branches[1].name
       ..price = cartController.totalPrice.toString()
       ..totalPrice = (cartController.totalPrice.value +
-          (showPickUpBranches.value ==
-              false
-              ? (double.parse(
-              selectedAreaPrice
-              .toString()))
+          (showPickUpBranches.value == false ?
+          (num.parse(x))
               : 0.0) +
           (cartController.totalPrice.value *
               (cartController.fees.value!.feesValue !=
@@ -153,23 +167,32 @@ class WhereToController extends GetxController {
                   : 0.0)) -
           cartController.discountValue.value)
           .toStringAsFixed(2)
-      ..delivery = selectedAreaPrice
-      ..discount = cartController.discountValue.value.toString()
-      ..extra = (cartController.fees.value!.feesValue !=
-          'null' ||
-          cartController.fees.value!.feesValue != null)
-          ? cartController.fees.value!.feesValue
+
+        ..delivery = CacheHelper.getDataToSharedPrefrence('dropDownValuePrice')
+      ..discount =(cartController.discountCodeTextController.text != 'null' &&
+          cartController.discountCodeTextController.text != null && cartController.discountCodeTextController.text.isNotEmpty)
+          ?  cartController.discountResponse.data!.value.toString():' '
+      /*****i change this****/
+      ..extra = (cartController.fees.value!.feesValue != 'null' || cartController.fees.value!.feesValue != null)
+          ? (cartController.totalPrice.value * (  double.parse(cartController.fees.value!.feesValue.toString()) / 100)).toStringAsFixed(2)
           : '0.0'
       ..orderId = dateID
       ..orderStatus = "تم أرسال طلبك"
       ..client = CacheHelper.loginShared
-      ..tax = (cartController.fees.value!.tax != 'null' ||
+      ..tax =(cartController.fees.value!.tax != 'null' ||
           cartController.fees.value!.tax != null)
-          ? cartController.fees.value!.tax
-          : '0.0'
+          ? (cartController.totalPrice.value -
+          (cartController.totalPrice.value / (((cartController.fees.value!.tax != 'null' ? (double.parse(cartController.fees.value!.tax.toString())) : 0.0) / 100) + 1)))
+          .toStringAsFixed(2): '0.0'
       ..listOfProduct = cartController.cartItemList
       ..referenceId = paymentReferenceId ??"cash"
       ..message = cartController.messageTextController.text;
+
+
+    // '${(cartController.totalPrice.value * (  double.parse(cartController.fees.value!.feesValue.toString()) / 100)).toStringAsFixed(2))}
+
+
+
 
     FirebaseDatabase.instance
         .reference()
@@ -196,17 +219,34 @@ class WhereToController extends GetxController {
         .set(null);
 
     cartController.cartItemList.clear();
-    cartController.cartItemList2.clear();
+    cartController.cartItemList=[];
+    cartController.cartItemList2=[];
+    // cartController.dbRef=[];
+    cartController.hide.value = true;
+    cartController.update();
+
     cartController.sendNotification();
     cartController.discountValue.value = 0.0;
     cartController.discountResponse = CouponResponse();
     cartController.discountCodeTextController.clear();
-    Get.offAll(() => BottomNavBarScreen());
-  }
+    cartController.messageTextController.clear();
 
-  @override
-  Future<void> onInit() async {
-    // await GeoLocatorHelper.determinePosition();
+    Get.snackbar('done', '${'your_order_sent_successfully'.tr}',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: kPrimaryColor,
+          duration: Duration(seconds: 2),
+          dismissDirection: DismissDirection.startToEnd,
+          barBlur: 10,
+          colorText: mainColor);
+
+     Get.offAll(() => BottomNavBarScreen());
+  }
+  late Future  getAllUserAddresseesv;
+  onInit() async {
+    getAllUserAddresseesv= Future.delayed(Duration(milliseconds: 250), () => true);
+   // await GeoLocatorHelper.determinePosition();
+    selectedAreaPrice;
+    print(')))))))))))))))))))${selectedDropDownValue?.price}');
     await getAllBranchAddresses();
     await getDeliveryList();
     await getAllUserAddressees();

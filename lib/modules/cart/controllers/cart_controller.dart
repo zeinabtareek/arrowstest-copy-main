@@ -15,6 +15,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../constants/colors.dart';
 import '../../product_details2/model/ProductDetailsModel.dart';
 import '../../sub_categories/models/SubCategories.dart';
 
@@ -23,8 +24,9 @@ import '../../sub_categories/models/SubCategories.dart';
 class CartController extends GetxController {
   var quantity = 1.obs;
   int cartIndex = 0;
-  RxDouble totalPrice = 222345678.0.obs;
+  RxDouble totalPrice = 0.0.obs;
   Rx<Fees?> fees = Fees().obs;
+
   var dbRef;
   List<NewCartModel2> cartItemList2 = <NewCartModel2>[];
    List<Product> cartItemList = <Product>[];
@@ -32,18 +34,18 @@ class CartController extends GetxController {
    RxBool hide = true.obs;
   RxBool isPercentage = false.obs;
   CouponResponse discountResponse = CouponResponse();
-  Rx<double> discountValue = 0.0.obs;
+  final discountValue = 0.0.obs;
 
   TextEditingController messageTextController = TextEditingController();
-  TextEditingController discountCodeTextController = TextEditingController();
+  final discountCodeTextController = TextEditingController();
 
   // RxInt itemCounter = 0.obs;
 
   Future<void> getDiscount() async
   {
     CouponBody discountBody = CouponBody(discountCode: discountCodeTextController.text ,
-        phoneNumber: CacheHelper.getDataToSharedPrefrence('userID'));
-        // phoneNumber: CacheHelper.loginShared!.mphone);
+        // phoneNumber: CacheHelper.getDataToSharedPrefrence('userName'));
+        phoneNumber: CacheHelper.loginShared!.phone);
     dio.Response? response;
     try
     {
@@ -54,17 +56,30 @@ class CartController extends GetxController {
           Get.defaultDialog(content: Text('${jsonDecode(response.data)['msg']}'),title: "خطا");
 
         }
+      // else if(discountCodeTextController.text.isEmpty){
+      //   Get.back();
+      //   Get.defaultDialog(content: Text('${jsonDecode(response.data)['msg']}'),title: "خطا");
+      //   Get.snackbar('خطا', '${jsonDecode(response.data)['msg']} ',
+      //       snackPosition: SnackPosition.TOP,
+      //       backgroundColor: kPrimaryColor,
+      //       duration: Duration(seconds: 2),
+      //       dismissDirection: DismissDirection.startToEnd,
+      //       barBlur: 10,
+      //       colorText: mainColor);
+      // }
+
+
       else{
         // Get.back();
         print('response.data${response.data}');
         discountResponse = CouponResponse.fromJson(jsonDecode(response.data));
+        print('response.data${discountResponse.data!.value}${discountResponse.data!.type}');
         // Get.back();
-      }
+      }    update();
     }
     catch(e)
-    {
-      print(e);
-    }
+    {  print(e); }
+    update();
   }
 
   Future<void> getRestaurantFees() async {
@@ -160,12 +175,13 @@ class CartController extends GetxController {
       if (snapshot.exists) {
         hide.value = false;
         var keys = snapshot.value.keys;
-        var values = snapshot.value;
 
 
         final json = snapshot.value as Map<dynamic, dynamic>;
         NewCartModel2   message = NewCartModel2.fromJson(json);
+        Product   message2 = Product.fromJson(json);
         cartItemList2.add(message);
+        cartItemList.add(message2);
         for (var key in keys) {
           print(key);
           var cartData = await FirebaseDatabase.instance
@@ -235,10 +251,20 @@ class CartController extends GetxController {
   }
 
   @override
+  void dispose() {
+    discountValue.value;
+
+  }
+
+  @override
   Future<void> onInit() async {
+
     await getRestaurantFees();
     totalPrice.value;
-     // getCartData();
+    discountResponse;
+   await  getDiscount();
+    discountValue.value=0;
+    // getCartData();
    print('_______________________________________________________________-${cartItemList2.length}');
    print('_______________________________________________________________-${cartList.length}');
     super.onInit();

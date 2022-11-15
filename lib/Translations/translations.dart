@@ -106,6 +106,7 @@ class Languages extends Translations {
           'sorry': 'عفوا',
           'you_can\'t_order_less_than_one': 'لا يمكنك أن تطلب أقل من واحد ',
           'there_is_no_sufficient_quantity': 'لا توجد كميه كافيه',
+          'your_order_sent_successfully':'تم إرسال طلبك بنجاح',
 
 },
 
@@ -209,7 +210,8 @@ class Languages extends Translations {
           'wallet_balance': 'Wallet Balance',
           'not_enough': 'Not Enough',
           'no_connection': 'no_connection',
-          'check':'Check'
+          'check':'Check',
+          'your_order_sent_successfully':'Your request has been sent successfully',
         }
       };
 }

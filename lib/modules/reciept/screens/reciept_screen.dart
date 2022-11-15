@@ -25,11 +25,13 @@ import '../../../components/custom_radio_button.dart';
 
 class ReceiptScreen extends StatelessWidget {
   dynamic selectedAreaPrice=0.0;
+  // dynamic selectedAreaPrice=CacheHelper.getDataToSharedPrefrence('dropDownValuePrice');
   ReceiptScreen({Key? key, required this.selectedAreaPrice}) : super(key: key);
   final CartController cartController = Get.put(CartController());
   final WhereToController whereToController = Get.find();
   final PaymentController paymentController = Get.put(PaymentController());
   // CouponUsedModel couponUsedModel = CouponUsedModel();
+
 
   Future<void> usedCoupon(BuildContext context) async {
     CouponUsedBody couponUsedBody = await CouponUsedBody(
@@ -61,7 +63,7 @@ class ReceiptScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
-                // SizedBox(
+                 // SizedBox(
                 //   width: double.infinity,
                 // ),
                 // Container(
@@ -88,7 +90,7 @@ class ReceiptScreen extends StatelessWidget {
                 //   height: 25.h,
                 // ),
                 Container(
-                  height: !landScape ? 315.h : 1100.h,
+                  height: !landScape ? 330.h : 1200.h,
                   margin: EdgeInsets.only(top: 10.h,right: 10.w,left: 10.w),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(15.0)),
@@ -141,8 +143,9 @@ class ReceiptScreen extends StatelessWidget {
                                           'discount'.tr,
                                           style: TextStyle(fontSize: 14.sp),
                                         ),
-                                        Obx(() {
-                                          return (cartController.isPercentage.value)
+                                        GetBuilder<CartController>(
+                                            builder: (cartController) {
+                                              return (cartController.isPercentage.value)
                                               ? Text(
                                             '( % ${cartController.discountResponse.data == null ? 0 : cartController.discountResponse.data!.value!.toString()} )',
                                             style: TextStyle(fontSize: 14.sp),
@@ -178,10 +181,10 @@ class ReceiptScreen extends StatelessWidget {
                                         ? Text(
                                             '${(cartController.totalPrice.value - //33.75
 
-                                                (cartController.totalPrice.value - (((cartController.fees.value!.tax != 'null' ? (cartController.totalPrice.value *double.parse(cartController.fees.value!.tax.toString())) : 0.0) / 100)      )))
+                                                // (cartController.totalPrice.value - (((cartController.fees.value!.tax != 'null' ? (cartController.totalPrice.value *double.parse(cartController.fees.value!.tax.toString())) : 0.0) / 100)      )))
+                                                // .toStringAsFixed(2)
+                                              (cartController.totalPrice.value / (((cartController.fees.value!.tax != 'null' ? (double.parse(cartController.fees.value!.tax.toString())) : 0.0) / 100) + 1)))
                                                 .toStringAsFixed(2)
-                                              // (cartController.totalPrice.value / (((cartController.fees.value!.tax != 'null' ? (double.parse(cartController.fees.value!.tax.toString())) : 0.0) / 100) + 1)))
-                                              //   .toStringAsFixed(2)
                                              } + ',
                                             style: TextStyle(
                                                 fontSize: 14.sp,
@@ -202,8 +205,9 @@ class ReceiptScreen extends StatelessWidget {
                                       'total'.tr,
                                       style: TextStyle(fontSize: 14.sp),
                                     ),
-                                    Obx(() {
-                                      return Text(
+                                    GetBuilder<CartController>(
+                                        builder: (cartController) {
+                                          return Text(
                                         '${((double.parse(cartController.totalPrice.value.toStringAsFixed(2))) - cartController.discountValue.value).toStringAsFixed(2)}    ',
                                         style: TextStyle(fontSize: 14.sp),
                                       );
@@ -225,12 +229,14 @@ class ReceiptScreen extends StatelessWidget {
                                     whereToController.showPickUpBranches == true
                                         ? const Text('0')
                                         : Text(
-                                            '${(selectedAreaPrice)} + ',
+                                            '${selectedAreaPrice} + ',
+                                            // '${(whereToController.selectedAreaPrice)} + ',
                                             // '${( whereToController.selectedAreaPrice)} + ',
                                             style: TextStyle(
                                                 fontSize: 14.sp,
                                                 color: Colors.green),
                                           ),
+
                                   ],
                                 ),
                                 /*******service_feeRow******/
@@ -244,7 +250,8 @@ class ReceiptScreen extends StatelessWidget {
                                       style: TextStyle(fontSize: 14.sp),
                                     ),
                                     Text(
-                                      '${(cartController.totalPrice.value * ((cartController.fees.value!.feesValue != 'null' ? double.parse(cartController.fees.value!.feesValue.toString()) : 0.0) / 100)).toStringAsFixed(2)} +  ',
+                                      '${(cartController.totalPrice.value * ((cartController.fees.value!.feesValue != 'null' ?
+                                      double.parse(cartController.fees.value!.feesValue.toString()) : 0.0) / 100)).toStringAsFixed(2)} +  ',
                                       style: TextStyle(
                                           fontSize: 14.sp, color: Colors.green),
                                     ),
@@ -263,14 +270,19 @@ class ReceiptScreen extends StatelessWidget {
                                       'total_sum'.tr,
                                       style: TextStyle(fontSize: 14.sp),
                                     ),
-                                    Obx(() {
-                                      return Text(
-                                        '${(cartController.totalPrice.value + (whereToController.showPickUpBranches == true ? 0.0 : (double.parse(whereToController.selectedAreaPrice.toString()))) + (cartController.totalPrice.value * (cartController.fees.value!.feesValue != 'null' ? (double.parse(cartController.fees.value!.feesValue.toString()) / 100) : 0.0)) - cartController.discountValue.value).toStringAsFixed(2)} ',
-                                        style: TextStyle(fontSize: 14.sp),
-                                      );
-                                    }),
+                                      Obx(() {
+                                        var x=selectedAreaPrice;
+                                        return
+                                          Text('${(cartController.totalPrice.value+ (whereToController.showPickUpBranches == true ? 0.0 :(num.tryParse(x)!))+ (cartController.totalPrice.value * (cartController.fees.value!.feesValue != 'null' ? (double.parse(cartController.fees.value!.feesValue.toString()) / 100) : 0.0)) -  cartController.discountValue.value).toStringAsFixed(2)} ',
+                                           style: TextStyle(fontSize: 14.sp),
+
+
+
+
+    );})
                                   ],
                                 ),
+
                               ],
                             ),
                           ),
@@ -280,176 +292,60 @@ class ReceiptScreen extends StatelessWidget {
                   ),
                 ),
 
-                // Padding(
-                //   padding: EdgeInsets.all(15.w),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       Align(
-                //         alignment: Alignment.centerRight,
-                //         child: SizedBox(
-                //           width: 270.w,
-                //           child: TextField(
-                //             keyboardType: TextInputType.text,
-                //             controller:
-                //                 cartController.discountCodeTextController,
-                //             decoration: InputDecoration(
-                //               border: OutlineInputBorder(
-                //                   borderSide: BorderSide(color: Colors.grey)),
-                //               enabledBorder: OutlineInputBorder(
-                //                 borderSide: BorderSide(color: mainColor),
-                //               ),
-                //               focusedBorder: OutlineInputBorder(
-                //                 borderSide: BorderSide(color: mainColor),
-                //               ),
-                //               contentPadding: EdgeInsets.all(8.r),
-                //               hintText: "voucher_code".tr,
-                //               hintStyle: TextStyle(fontSize: 14.sp),
-                //             ),
-                //           ),
-                //         ),
-                //       ),
-                //       TextButton(
-                //         onPressed: () async {
-                //           print(cartController.totalPrice);
-                //           showLoaderDialog(context);
-                //           await cartController.getDiscount();
-                //           if (cartController.discountResponse.data?.type ==
-                //               "نسبة") {
-                //             cartController.discountValue.value = (double.parse(
-                //                     cartController.discountResponse.data!.value
-                //                         .toString())) /
-                //                 100 *
-                //                 (cartController.totalPrice.value);
-                //             cartController.isPercentage.value = true;
-                //           } else {
-                //             cartController.discountValue.value = double.parse(
-                //                 cartController.discountResponse.data!.value
-                //                     .toString());
-                //             cartController.isPercentage.value = false;
-                //           }
-                //           cartController.update();
-                //         },
-                //         style: TextButton.styleFrom(
-                //           backgroundColor: kPrimaryColor,
-                //         ),
-                //         child: Text(
-                //           "done".tr,
-                //           style:
-                //               TextStyle(color: Colors.white, fontSize: 12.sp),
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                // SizedBox(
-                //   height: 5.h,
-                // ),
 
-                Container(
-                  margin: EdgeInsets.only(left:10.w,right: 10.w,top: 10.h),
-                  decoration: BoxDecoration(
-                      color: kPrimaryColor,
-                      borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                      border: Border.all(
-                        color: kPrimaryColor,
-                        width: 3,
-                      )),
-                  child:Column(
-                    children: [
-                      Obx(
-                         () {
-                          return Card(child:
-                          RadioListTile(activeColor: kPrimaryColor,value:1, groupValue: whereToController.selectedPaymentType.value, onChanged: (newValue){
-                            whereToController.selectedPaymentType.value = newValue as int;
-                          },title: Row(
-                            children: [
-                              Image.asset('assets/icons/money.png',width: 25.r,height: 25.r,),
-                              SizedBox(width: 10.w,),
-                              Text("الدفع عند الاستلام"),
-                            ],
-                          ),),color: mainColor,);
-                        }
-                      ),
-                      Obx(
-                         () {
-                          return Card(child: RadioListTile(activeColor: kPrimaryColor,value:2, groupValue: whereToController.selectedPaymentType.value, onChanged: (newValue){
-                            whereToController.selectedPaymentType.value = newValue as int;
 
-                          },title: Row(
-                            children: [
-                              Image.asset('assets/icons/debit_card.png',width: 25.r,height: 25.r,),
-                              SizedBox(width: 10.w,),
-                              Text("الدفع باستخدام البطاقة"),
-                            ],
-                          ),),color: mainColor,);
-                        }
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      margin: EdgeInsets.only(left:10.w,right: 10.w,top: 10.h),
+                      decoration: BoxDecoration(
+                          color: kPrimaryColor,
+                          borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                          border: Border.all(
+                            color: kPrimaryColor,
+                            width: 3,
+                          )),
+                      child:Column(
+                        children: [
+                          Obx(
+                             () {
+                              return Card(child:
+                              RadioListTile(activeColor: kPrimaryColor,value:1, groupValue: whereToController.selectedPaymentType.value, onChanged: (newValue){
+                                whereToController.selectedPaymentType.value = newValue as int;
+                              },title: Row(
+                                children: [
+                                  Image.asset('assets/icons/money.png',width: 25.r,height: 25.r,),
+                                  SizedBox(width: 10.w,),
+                                  Text("الدفع عند الاستلام"),
+                                ],
+                              ),),color: mainColor,);
+                            }
+                          ),
+                          Obx(
+                             () {
+                              return Card(child: RadioListTile(activeColor: kPrimaryColor,value:2, groupValue: whereToController.selectedPaymentType.value, onChanged: (newValue){
+                                whereToController.selectedPaymentType.value = newValue as int;
+
+                              },title: Row(
+                                children: [
+                                  Image.asset('assets/icons/debit_card.png',width: 25.r,height: 25.r,),
+                                  SizedBox(width: 10.w,),
+                                  Text("الدفع باستخدام البطاقة"),
+                                ],
+                              ),),color: mainColor,);
+                            }
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
 
-                // Container(
-                //   margin: EdgeInsets.only(left:10.w,right: 10.w,top: 10.h),
-                //     decoration: BoxDecoration(
-                //       color: mainColor,
-                //         borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                //         border: Border.all(
-                //           color: kPrimaryColor,
-                //           width: 3,
-                //         )),
-                //   child:CustomRadioButton(
-                //     controller: SubCategoriesController(),
-                //     value: 'null',
-                //     onChanged: (v) {  },
-                //     textOfTheRadio: 'cash_payment'.tr,
-                //     isPayment:true,
-                //     image: 'assets/icons/money.png',
-                //     isDrinks: false,)
-                // ),
-                // Container(
-                //     margin: EdgeInsets.all(10),
-                //     decoration: BoxDecoration(
-                //         color: mainColor,
-                //         borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                //         border: Border.all(
-                //           color: kPrimaryColor,
-                //           width: 3,
-                //         )),
-                //     child:CustomRadioButton(
-                //       controller: SubCategoriesController(),
-                //       value: whereToController.selectTypeRadioButton.value,
-                //       onChanged: (v) {
-                //         whereToController.selectTypeRadioButton(v);
-                //
-                //         print(v);
-                //       },
-                //       textOfTheRadio: '${'${'credit_card_payment'.tr}'}',
-                //       isPayment:true,
-                //       image: 'assets/icons/debit_card.png',
-                //       isDrinks: false,)
-                // ),
-                // Container(
-                //     margin: EdgeInsets.only(left:10.w,right: 10.w,bottom: 10.h),
-                //     decoration: BoxDecoration(
-                //         color: mainColor,
-                //         borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                //         border: Border.all(
-                //           color: kPrimaryColor,
-                //           width: 3,
-                //         )),
-                //     child:CustomRadioButton(
-                //       controller: SubCategoriesController(),
-                //       value: 'null',
-                //       onChanged: (v) {  },
-                //       textOfTheRadio: '${'${'wallet_balance'.tr} 0${'not_enough'.tr} '}',
-                //       isPayment:true,
-                //       image: 'assets/icons/wallet.png',
-                //       isDrinks: false,)
-                // ),
+
                 Padding(
                   padding: EdgeInsets.all(15.w),
-                  child: TextFormField(
+                  child: TextField(
                     controller: cartController.messageTextController,
                     maxLines: 2,
                     style: TextStyle(color: mainColor),
@@ -483,40 +379,10 @@ class ReceiptScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Padding(
-                //   padding:  EdgeInsets.all(8.w),
-                //   child: Column(
-                //     children: [
-                //       Obx(
-                //          () {
-                //           return Card(child: RadioListTile(activeColor: kPrimaryColor,value:1, groupValue: whereToController.selectedPaymentType.value, onChanged: (newValue){
-                //             whereToController.selectedPaymentType.value = newValue as int;
-                //           },title: Row(
-                //             children: [
-                //               Image.asset('assets/icons/money.png',width: 25.r,height: 25.r,),
-                //               SizedBox(width: 10.w,),
-                //               Text("الدفع عند الاستلام"),
-                //             ],
-                //           ),));
-                //         }
-                //       ),
-                //       Obx(
-                //          () {
-                //           return Card(child: RadioListTile(activeColor: kPrimaryColor,value:2, groupValue: whereToController.selectedPaymentType.value, onChanged: (newValue){
-                //             whereToController.selectedPaymentType.value = newValue as int;
-                //
-                //           },title: Row(
-                //             children: [
-                //               Image.asset('assets/icons/debit_card.png',width: 25.r,height: 25.r,),
-                //               SizedBox(width: 10.w,),
-                //               Text("الدفع باستخدام البطاقة"),
-                //             ],
-                //           ),));
-                //         }
-                //       ),
-                //     ],
-                //   ),
-                // ),
+
+
+
+
                 SizedBox(
                   width: 300.w,
                   child: TextButton(
@@ -524,13 +390,29 @@ class ReceiptScreen extends StatelessWidget {
                     onPressed: () async {
                         if (cartController.discountResponse.status == true) {
                           await usedCoupon(context).then((value) {
-                            // cartController.discountValue.value = 0.0;
+                            cartController.discountValue.value = 0.0;
                             cartController.cartItemList.clear();
                             cartController.cartItemList2.clear();
 
                           });
-                        }
-                        whereToController.addOrderToFirebase();
+                        }else if (cartController.discountResponse.status == true) {
+
+                            Get.snackbar('Error', 'This coupon is already Used ',
+                                snackPosition: SnackPosition.TOP,
+                                backgroundColor: kPrimaryColor,
+                                duration: Duration(seconds: 2),
+                                dismissDirection: DismissDirection.startToEnd,
+                                barBlur: 10,
+                                colorText: mainColor);
+                          }
+
+                        whereToController.addOrderToFirebase().then((value) async {
+                          await FirebaseDatabase.instance
+                              .reference()
+                              .child("Cart")
+                              .child(CacheHelper.getDataToSharedPrefrence('restaurantBranchID'))
+                              .child(CacheHelper.getDataToSharedPrefrence('userID') ).remove();
+                        });
                       // Get.to(PaymentScreen(paymentToken: '',));
                     },
                     child: Text(
@@ -539,7 +421,6 @@ class ReceiptScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 20.h,),
 
               ],
             ),
@@ -547,7 +428,8 @@ class ReceiptScreen extends StatelessWidget {
         ),
       ),
     );
-  }Widget CustomAppBar(context){
+  }
+  Widget CustomAppBar(context){
     return Container(
       // width: 300,
       color: mainColor,
@@ -564,10 +446,13 @@ class ReceiptScreen extends StatelessWidget {
               Container(
                 width: 250.w,
                 height: 50.h,
-                child: TextField(
+                child: TextFormField(
                   keyboardType: TextInputType.text,
-                  controller:
-                  cartController.discountCodeTextController,
+                  // controller:
+                  // cartController.discountCodeTextController,
+                  onChanged: (v){
+                    cartController.discountCodeTextController.text=v;
+                  },
                   decoration: InputDecoration(filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -581,73 +466,65 @@ class ReceiptScreen extends StatelessWidget {
                     contentPadding: EdgeInsets.all(8.r),
                     hintText: "voucher_code".tr,
                     hintStyle: TextStyle(fontSize: 14.sp),
+
                   ),
                 ),
               ),
-              Container(
-                width: 100.w,
+             Container(
+                // width: 100.w,
                 height: 50.h,
                 margin: EdgeInsets.only(left: 10.w,right: 10.w),
-                child:  TextButton(   onPressed: () async {
+                child: GetBuilder<CartController>(
+                  init: CartController(),
+                  builder :(cartController)=> TextButton(
+                    onPressed: () async {
               print('cartController.totalPrice ${cartController.totalPrice}');
-              // showLoaderDialog(context);
-              if(cartController.discountResponse.status==true)
-               {
-                    await cartController.getDiscount();
-                    print('&&&&&&&cartController.getDiscount()${cartController.getDiscount()}');
+               // showLoaderDialog(context);
+              await cartController.getDiscount();
+              // if(cartController.discountValue.value< num.tryParse( cartController.totalPrice.toString())!){
 
-                    if (cartController.discountResponse.data?.type == "نسبة") { //test1,//test4
-                    cartController.discountValue.value = (double.parse(
+                if (cartController.discountResponse.data!.type ==
+                  "نسبة") {
+                  //discountResponse
+                cartController.discountValue.value = (double.parse(
                     cartController.discountResponse.data!.value
-                        .toString())) / 100 * (cartController.totalPrice.value);
-                    cartController.isPercentage.value = true;
+                        .toString())) /
+                    100 *
+                    (cartController.totalPrice.value);
+                cartController.isPercentage.value = true;
+              } else {
+                  print('hna*******');
 
+                  if(cartController.discountValue.value<num.tryParse( cartController.totalPrice.toString())!){
+                    cartController.discountValue.value = double.parse(
+                        cartController.discountResponse.data!.value
+                            .toString());
+                    // cartController.totalPrice.value -= cartController.discountValue.value;
+                print('cartController.discountValue.value)${cartController.discountValue.value}');
+                print('cartController.total.value)${cartController.totalPrice.value}');
+                //
+                cartController.isPercentage.value = false;
+              // }
 
-
-                    // Get.snackbar('Error', 'this coupon is already used',
-                    //     snackPosition: SnackPosition.TOP,
-                    //     backgroundColor: kPrimaryColor,
-                    //     duration: Duration(seconds: 2),
-                    //     dismissDirection: DismissDirection.startToEnd,
-                    //     barBlur: 10,
-                    //     colorText: mainColor);
-                    print('nesba${ cartController.discountValue.value}');
-                    print('totalPrice after discount ${cartController.totalPrice}');
-
-                    }
-                    else
-                    { //test3 ,//test2 ,test
-                cartController.discountValue.value = double.parse(cartController.discountResponse.data!.value
-                  .toString());
-              cartController.isPercentage.value = false;
-              print('XXX${ cartController.discountValue.value}');//XXX50.0
-              print('XXX${ cartController.discountValue.value}');//XXX50.0
-              print('XXX${ cartController.discountResponse.data?.type}');//XXX50.0
-                print('totalPrice after discount ${cartController.totalPrice}');
-
-              }
-              }
-              else{
-                Get.snackbar('Error', 'This cupon is already used',
-                    snackPosition: SnackPosition.TOP,
-                    backgroundColor: kPrimaryColor,
-                    duration: Duration(seconds: 2),
-                    dismissDirection: DismissDirection.startToEnd,
-                    barBlur: 10,
-                    colorText: mainColor);
-              }
+                }else{
+                    print('the discount is bigger than the total price');
+                  }
+                }
               cartController.update();
 
-              },
+
+                    },
                   style: TextButton.styleFrom(
                     backgroundColor: kPrimaryColor,
                   ),
                   child: Text(
-                    "dsnsnnnone".tr,
+                    "done".tr,
                     style:
                     TextStyle(color: Colors.white, fontSize: 16.sp, ),
                   ),
                 ),
+
+              ),
               ),
             ],),)
 
@@ -657,28 +534,3 @@ class ReceiptScreen extends StatelessWidget {
   }
 }
 
-class PointsClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    Path path = Path();
-    path.lineTo(0, size.height);
-    double x = 0;
-    double y = size.height;
-    double increment = size.width / 20;
-
-    while (x < size.width) {
-      x += increment;
-      y = (y == size.height) ? size.height * .98 : size.height;
-      path.lineTo(x, y);
-    }
-    path.lineTo(size.width, 0.0);
-
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper old) {
-    return old != this;
-  }
-}

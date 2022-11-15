@@ -15,7 +15,7 @@ class AddAddressController extends GetxController {
 
   @override
   Future<void> onInit() async {
-
+    addresses;
     super.onInit();
   }
   @override

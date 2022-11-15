@@ -26,20 +26,26 @@ class WhereToDeliverScreen extends StatefulWidget {
   State<WhereToDeliverScreen> createState() => _WhereToDeliverScreenState();
 }
 
+Future _mapFuture = Future.delayed(Duration(milliseconds: 250), () => true);
+
 class _WhereToDeliverScreenState extends State<WhereToDeliverScreen> {
   final WhereToController whereToController = Get.put(WhereToController());
   Completer<GoogleMapController> _controller = Completer();
-  Set<Marker>markers = {};
-   @override
+  Set<Marker> markers = {};
+
+  @override
   Widget build(BuildContext context) {
-    final landScape = MediaQuery.of(context).orientation == Orientation.landscape;
-     whereToController.getAllUserAddressees();
-      final CameraPosition _kGooglePlex = CameraPosition(
+    final landScape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    whereToController.getAllUserAddressees();
+    final CameraPosition _kGooglePlex = CameraPosition(
       target: LatLng(37.42796133580664, -122.085749655962),
       zoom: 14.4746,
     );
     return Scaffold(
-      appBar:ArrowsAppBar('checkOut_onOrder',),
+      appBar: ArrowsAppBar(
+        'checkOut_onOrder',
+      ),
       body: SafeArea(
           child: SingleChildScrollView(
         child: Column(
@@ -68,7 +74,7 @@ class _WhereToDeliverScreenState extends State<WhereToDeliverScreen> {
               child: Text(
                 "checkOut_onOrder_title".tr,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16.sp,color: mainColor),
+                style: TextStyle(fontSize: 16.sp, color: mainColor),
               ),
             ),
             SizedBox(
@@ -78,83 +84,104 @@ class _WhereToDeliverScreenState extends State<WhereToDeliverScreen> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                SizedBox(width: 10.w,),
+                SizedBox(
+                  width: 10.w,
+                ),
                 Obx(() {
                   return Expanded(
                     child: TextButton(
                       style: TextButton.styleFrom(
-                        backgroundColor:
-                            whereToController.showPickUpBranches.value
-                                ? mainColor
-                                : mainColor
-                                
-                      ),
-                      onPressed: () async{
-                        PostedOrder.order.address = null; //this is the cause of the crashing
+                          backgroundColor:
+                              whereToController.showPickUpBranches.value
+                                  ? mainColor
+                                  : mainColor),
+                      onPressed: () async {
+                        PostedOrder.order.address =
+                            null; //this is the cause of the crashing
                         PostedOrder.order.branch =
-                             await whereToController.branches[1].name;
-                          whereToController.showPickUpBranches.value = true;
-                        print('%%%%%5${whereToController.showPickUpBranches.value}');
-
-
+                            await whereToController.branches[1].name;
+                        whereToController.showPickUpBranches.value = true;
+                        print(
+                            '%%%%%5${whereToController.showPickUpBranches.value}');
                       },
                       child: Text(
                         "receive_from".tr,
                         style: TextStyle(
-                            color:whereToController.showPickUpBranches.value?kPrimaryColor:Colors.white,
+                            color: whereToController.showPickUpBranches.value
+                                ? kPrimaryColor
+                                : Colors.white,
                             fontSize: 15.sp,
                             fontWeight: FontWeight.bold),
                       ),
                     ),
                   );
                 }),
-                SizedBox(width: 10.w,),
+                SizedBox(
+                  width: 10.w,
+                ),
                 // TextButton(onPressed: (){
                 //   whereToController.showPickUpBranches.value=false;
                 //   print('%%%%%5${whereToController.showPickUpBranches.value}');
                 // }, child: Text('jhdhd'))
-                Obx(() {
-                  return Expanded(child:TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor:
-                          whereToController.showPickUpBranches.value
-                               ? mainColor
-                               : mainColor,
-                              // : Colors.green,
+                // Obx(() {
+                FutureBuilder(
+                future: whereToController.getAllUserAddresseesv,
+                   builder: (context, snapShot) =>
+                       Expanded(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor:
+                            whereToController.showPickUpBranches.value
+                                ? mainColor
+                                : mainColor,
+
+                      ),
+                      onPressed: () async {
+                        // PostedOrder.order.branch = 'null';
+                        try {
+                          await Future.delayed(Duration(seconds: 3), () {
+
+                              PostedOrder.order.branch = null;
+                              whereToController.showPickUpBranches.value =
+                                  false;
+                              (whereToController.selectedUserAddress != null && whereToController.selectedUserAddress.address!.isNotEmpty)
+                                  ? PostedOrder.order.address = whereToController.selectedUserAddress
+                                  : printError(info: 'mnnnnnnnvnnnnnvvnvnvnvn');
+                            });
+
+                        } catch (e) {
+                          print(e);
+                        }
+                      },
+                      child: Text(
+                        "deliver_to".tr,
+                        style: TextStyle(
+                            color: whereToController.showPickUpBranches.value
+                                ? Colors.white
+                                : kPrimaryColor,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    onPressed: () {
-                      // PostedOrder.order.branch = 'null';
-                      try{
-                      PostedOrder.order.branch = null;
-                      whereToController.showPickUpBranches.value =false;
-                      (whereToController.selectedUserAddress!=null && whereToController.selectedUserAddress.address!.isNotEmpty)?
-                      PostedOrder.order.address = whereToController.selectedUserAddress:
-                      printError(info:'mnnnnnnnvnnnnnvvnvnvnvn');
-                    }catch(e){
-                        print(e);
-                      }},
-                    child: Text(
-                      "deliver_to".tr,
-                      style: TextStyle(
-                          color:whereToController.showPickUpBranches.value? Colors.white:kPrimaryColor,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    ),
-                  );
-                }),
-                SizedBox(width: 10.w,),
+    )
+    ),
+                SizedBox(
+                  width: 10.w,
+                ),
               ],
             ),
-            Obx((){
+            Obx(() {
               return (whereToController.showPickUpBranches.value)
                   ? FutureBuilder(
-                future:  whereToController.getAllBranchAddresses(),
-                    builder:(context ,snapShot) => Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      future: whereToController.getAllBranchAddresses(),
+                      builder: (context, snapShot) => Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("  ${'receive_from'.tr} :",style: TextStyle(fontSize: 14.sp,color: mainColor),),
+                          Text(
+                            "  ${'receive_from'.tr} :",
+                            style: TextStyle(fontSize: 14.sp, color: mainColor),
+                          ),
                           //الاستلام من الفرع
                           Padding(
                             padding: EdgeInsets.all(15.w),
@@ -162,219 +189,303 @@ class _WhereToDeliverScreenState extends State<WhereToDeliverScreen> {
                               padding: EdgeInsets.only(top: 15.h),
                               width: ScreenUtil().screenWidth,
                               decoration: BoxDecoration(
+                                color: mainColor,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
                                   color: mainColor,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: mainColor,
-                                  ),
+                                ),
                               ),
-                              child: (snapShot.connectionState == ConnectionState.waiting) ?
-                              Center(child: CupertinoActivityIndicator(radius: 20, color: kPrimaryColor,),)
-                                  :Column(
-                                    children: [
-                                      Padding(
-                                        padding:   EdgeInsets.all(8.0.sp),
-                                        child: Row(
+                              child:
+                                  (snapShot.connectionState ==
+                                          ConnectionState.waiting)
+                                      ? Center(
+                                          child: CupertinoActivityIndicator(
+                                            radius: 20,
+                                            color: kPrimaryColor,
+                                          ),
+                                        )
+                                      : Column(
                                           children: [
-                                            Text('${'branch'.tr}  :',style: TextStyle(fontWeight: FontWeight.bold),),
-                                            Text('${whereToController.branches[1].name}'),
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0.sp),
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    '${'branch'.tr}  :',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  Text(
+                                                      '${whereToController.branches[1].name}'),
+                                                ],
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                  bottom: 8.0.h,
+                                                  left: 8.w,
+                                                  right: 8.w),
+                                              child: Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    '${'your_address'.tr}  :',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  SizedBox(
+                                                      width:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width /
+                                                              2.w,
+                                                      child: Text(
+                                                        '${CacheHelper.getDataToSharedPrefrence('restaurantBranchAddress')}',
+                                                        style: TextStyle(
+                                                            fontSize: 16.sp),
+                                                      )),
+                                                  // child: Text('${whereToController.branches[1].address}',style: TextStyle(fontSize: 16.sp),)),
+                                                ],
+                                              ),
+                                            ),
+                                            GetBuilder<MapController>(
+                                                init: MapController(),
+                                                builder: (controller) {
+                                                  return (!whereToController
+                                                          .showPickUpBranches
+                                                          .value)
+                                                      ? SizedBox()
+                                                      : FutureBuilder(
+                                                          future: _mapFuture,
+                                                          builder: (context,
+                                                              snapshot) {
+                                                            if (!snapshot
+                                                                .hasData) {
+                                                              print("empty");
+                                                              return CircularProgressIndicator(
+                                                                color:
+                                                                    mainColor,
+                                                              );
+                                                            }
+
+                                                            return SizedBox(
+                                                                height: 400.h,
+                                                                child: Container(
+                                                                    // margin: EdgeInsets.only(top: 20.h),
+                                                                    decoration: BoxDecoration(
+                                                                      borderRadius:
+                                                                          BorderRadius.all(
+                                                                              Radius.circular(15.0)),
+                                                                      border:
+                                                                          Border
+                                                                              .all(
+                                                                        color:
+                                                                            mainColor,
+                                                                        width:
+                                                                            3,
+                                                                      ),
+                                                                    ),
+                                                                    child: GoogleMap(
+                                                                        mapType: MapType.normal,
+                                                                        initialCameraPosition: controller.initialCameraPOstion,
+                                                                        markers: markers,
+                                                                        onMapCreated: (GoogleMapController controller) {
+                                                                          _controller
+                                                                              .complete(controller);
+                                                                          //  final marker = Marker(
+                                                                          //   markerId: MarkerId(CacheHelper.getDataToSharedPrefrence('restaurantBranchID')),
+                                                                          //   position:  LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),
+                                                                          //       double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
+                                                                          //   // icon: BitmapDescriptor.,
+                                                                          //   infoWindow: InfoWindow(
+                                                                          //     title: 'Location',
+                                                                          //     snippet: CacheHelper.getDataToSharedPrefrence('restaurantBranchID'),
+                                                                          //   ),
+                                                                          // );
+                                                                          // setState(
+                                                                          //     () {
+                                                                            markers.add(Marker(
+                                                                              markerId: MarkerId("home"),
+                                                                              //marker ID is mandate to differentiate from the other markers
+                                                                              position: LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')), double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
+                                                                            ));
+                                                                            // marker;
+                                                                          // });
+                                                                        })));
+                                                          });
+                                                }),
                                           ],
                                         ),
-                                      ), Padding(
-                                        padding:   EdgeInsets.only(bottom: 8.0.h,left: 8.w,right: 8.w),
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Text('${'your_address'.tr}  :',style: TextStyle(fontWeight: FontWeight.bold),),
-                                            SizedBox(width: MediaQuery.of(context).size.width/2.w,
-                                                child: Text('${CacheHelper.getDataToSharedPrefrence('restaurantBranchAddress')}'
-                                                  ,style: TextStyle(fontSize: 16.sp),)),
-                                                // child: Text('${whereToController.branches[1].address}',style: TextStyle(fontSize: 16.sp),)),
-                                          ],
-                                        ),
-                                      ),
-
-
-
-
-                                      GetBuilder<MapController>(
-                                          init :MapController(),
-                                          builder:(controller){
-                                            return
-                                              (!whereToController.showPickUpBranches.value) ?
-                                              SizedBox():
-                                              SizedBox(
-                                                  height: 400.h,
-                                                  child: Container(
-                                                      // margin: EdgeInsets.only(top: 20.h),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                                                        border: Border.all(
-                                                          color: mainColor,
-                                                          width: 3,
-                                                        ),
-                                                      ),
-                                                      child:GoogleMap(
-                                                          mapType: MapType.normal,
-                                                          initialCameraPosition: controller.initialCameraPOstion,
-                                                          markers: markers,
-                                                          onMapCreated: (GoogleMapController controller) {
-                                                            _controller.complete(controller);
-                                                            //  final marker = Marker(
-                                                            //   markerId: MarkerId(CacheHelper.getDataToSharedPrefrence('restaurantBranchID')),
-                                                            //   position:  LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),
-                                                            //       double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
-                                                            //   // icon: BitmapDescriptor.,
-                                                            //   infoWindow: InfoWindow(
-                                                            //     title: 'Location',
-                                                            //     snippet: CacheHelper.getDataToSharedPrefrence('restaurantBranchID'),
-                                                            //   ),
-                                                            // );
-                                                            setState(() {
-                                                              markers.add(Marker(
-                                                                markerId: MarkerId("home"), //marker ID is mandate to differentiate from the other markers
-                                                                position: LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
-
-                                                              ));
-                                                              // marker;
-                                                            });
-                                                          }
-                                                      ))) ;
-
-                                          })  ,
-                                    ],
-                                  ),
                             ),
                           ),
                         ],
                       ),
-                  ) : whereToController.dbref == null
+                    )
+                  : whereToController.dbref == null
                       ? SizedBox()
-                      : Container(
-                        decoration: CommonStyles.customBoxDecoration,
-                          // height: ScreenUtil().screenHeight,
-                          width: ScreenUtil().screenWidth,
-                          child: FirebaseAnimatedList(
-                              physics: NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              query: whereToController.dbref,
-                              itemBuilder: (
-                                BuildContext context,
-                                DataSnapshot snapshot,
-                                Animation<double> animation,
-                                int index,
-                              ) {
-                                return Obx(() {
-                                  return RadioListTile(
-                                    groupValue:
-                                        whereToController.radioValue.value,
-                                    value: snapshot.value.toString(),
-                                    onChanged: (onChanged) {
-                                      whereToController.radioValue.value =
-                                          snapshot.value.toString();
-                                      PostedOrder.order.address =
-                                          UserAddress.fromJson(snapshot.value as Map<dynamic, dynamic>);
-                                      whereToController.selectedUserAddress =
-                                          UserAddress.fromJson(snapshot.value as Map<dynamic, dynamic>);
-                                      // whereToController.selectedAreaPrice =snapshot.value!['branch1']['price'];
-                                      whereToController.selectedAreaPrice =snapshot.value['user_area']['price'];
-                                    },
-                                    title: Text(
-                                        "${snapshot.value["address"]} - ${snapshot.value['user_area']['area'] ?? ""}",style: TextStyle(fontSize: 14.sp),),
-                                  );
-                                });
-                              }),
-                        );
+                      : FutureBuilder(
+                          future: whereToController.getAllUserAddressees(),
+                          builder: (context, snapShot) => Container(
+                                decoration: CommonStyles.customBoxDecoration,
+                                // height: ScreenUtil().screenHeight,
+                                width: ScreenUtil().screenWidth,
+                                child: FirebaseAnimatedList(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    query: whereToController.dbref,
+                                    itemBuilder: (
+                                      BuildContext context,
+                                      DataSnapshot snapshot,
+                                      Animation<double> animation,
+                                      int index,
+                                    ) {
+                                      return Obx(() {
+                                        return RadioListTile(
+                                          groupValue: whereToController
+                                              .radioValue.value,
+                                          value: snapshot.value.toString(),
+                                          onChanged: (onChanged) async {
+                                            whereToController.radioValue.value =
+                                                snapshot.value.toString();
+                                            PostedOrder.order.address =
+                                                UserAddress.fromJson(snapshot
+                                                        .value
+                                                    as Map<dynamic, dynamic>);
+                                            whereToController
+                                                    .selectedUserAddress =
+                                                UserAddress.fromJson(snapshot
+                                                        .value
+                                                    as Map<dynamic, dynamic>);
+                                            // whereToController.selectedAreaPrice =snapshot.value!['branch1']['price'];
+                                            whereToController
+                                                    .selectedAreaPrice.value =
+                                                snapshot.value['user_area']
+                                                    ['price'];
+                                            var x = await CacheHelper
+                                                .saveDataToSharedPrefrence(
+                                                    'dropdownAreaPrice',
+                                                    snapshot.value['user_area']
+                                                        ['price']);
+                                            print(whereToController
+                                                .selectedAreaPrice.value);
+                                          },
+                                          title: Text(
+                                            "${snapshot.value["address"]} - ${snapshot.value['user_area']['area'] ?? ""}",
+                                            style: TextStyle(fontSize: 14.sp),
+                                          ),
+                                        );
+                                      });
+                                    }),
+                              ));
             }),
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  SizedBox(height: 20.h,),
-                  Obx(()=>
-                (whereToController.showPickUpBranches.value) ?
-                 SizedBox():
-                Button(text: "add_new_address".tr, size: 250,
-                  height: 50,
-                  isFramed: true
-                    ,onPressed: (){
-                      Get.to(() => AddNewAddress());
-                    },),),
-                SizedBox(height: 20.h,),
+                  SizedBox(
+                    height: 20.h,
+                  ),
+                  Obx(
+                    () => (whereToController.showPickUpBranches.value)
+                        ? SizedBox()
+                        : Button(
+                            text: "add_new_address".tr,
+                            size: 250,
+                            height: 50,
+                            isFramed: true,
+                            onPressed: () async {
+                              Future.delayed(Duration(seconds: 5), () {
+                                // setState(() {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => AddNewAddress()));
+                                });
+                              // });
+                            },
+                          ),
+                  ),
+                  SizedBox(
+                    height: 20.h,
+                  ),
 
-            // Obx(()=>
-            //     (whereToController.showPickUpBranches.value) ?
-            //       SizedBox():
-            //       SizedBox(
-            //             width: 250.w,
-            //             child: TextButton(
-            //               onPressed: () {
-            //                 Get.to(() => AddNewAddress());
-            //               },
-            //               style: TextButton.styleFrom(
-            //                 backgroundColor: mainColor,
-            //               ),
-            //               child: FittedBox(
-            //                 child: Text(
-            //                   "add_new_address".tr,
-            //                   style: TextStyle(color: kPrimaryColor,fontSize: 15.sp),
-            //                 ),
-            //               ),
-            //             ),
-            //             ),
-            //
-            //   ),
+                  // Obx(()=>
+                  //     (whereToController.showPickUpBranches.value) ?
+                  //       SizedBox():
+                  //       SizedBox(
+                  //             width: 250.w,
+                  //             child: TextButton(
+                  //               onPressed: () {
+                  //                 Get.to(() => AddNewAddress());
+                  //               },
+                  //               style: TextButton.styleFrom(
+                  //                 backgroundColor: mainColor,
+                  //               ),
+                  //               child: FittedBox(
+                  //                 child: Text(
+                  //                   "add_new_address".tr,
+                  //                   style: TextStyle(color: kPrimaryColor,fontSize: 15.sp),
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //             ),
+                  //
+                  //   ),
 
-    // Obx((){
-    // return (whereToController.showPickUpBranches.value)
-    // ?
-    //         GetBuilder<MapController>(
-    //                 init :MapController(),
-    //                 builder:(controller){
-    //                 return
-    //                 (!whereToController.showPickUpBranches.value) ?
-    //                 SizedBox():
-    //                  SizedBox(
-    //                     height: 400.h,
-    //                     child: Container(
-    //                       margin: EdgeInsets.only(top: 20.h),
-    //                           decoration: BoxDecoration(
-    //                               borderRadius: BorderRadius.all(Radius.circular(15.0)),
-    //                               border: Border.all(
-    //                                 color: mainColor,
-    //                                 width: 3,
-    //                               ),
-    //                           ),
-    //                       child:GoogleMap(
-    //                      mapType: MapType.normal,
-    //                      initialCameraPosition: controller.initialCameraPOstion,
-    //                      markers: markers,
-    //                      onMapCreated: (GoogleMapController controller) {
-    //                        _controller.complete(controller);
-    //                        //  final marker = Marker(
-    //                        //   markerId: MarkerId(CacheHelper.getDataToSharedPrefrence('restaurantBranchID')),
-    //                        //   position:  LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),
-    //                        //       double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
-    //                        //   // icon: BitmapDescriptor.,
-    //                        //   infoWindow: InfoWindow(
-    //                        //     title: 'Location',
-    //                        //     snippet: CacheHelper.getDataToSharedPrefrence('restaurantBranchID'),
-    //                        //   ),
-    //                        // );
-    //                        setState(() {
-    //                          markers.add(Marker(
-    //                              markerId: MarkerId("home"), //marker ID is mandate to differentiate from the other markers
-    //                          position: LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
-    //
-    //                          ));
-    //                          // marker;
-    //                        });
-    //                   }
-    //                  ))) ;
-    //
-    //                  })  ,
+                  // Obx((){
+                  // return (whereToController.showPickUpBranches.value)
+                  // ?
+                  //         GetBuilder<MapController>(
+                  //                 init :MapController(),
+                  //                 builder:(controller){
+                  //                 return
+                  //                 (!whereToController.showPickUpBranches.value) ?
+                  //                 SizedBox():
+                  //                  SizedBox(
+                  //                     height: 400.h,
+                  //                     child: Container(
+                  //                       margin: EdgeInsets.only(top: 20.h),
+                  //                           decoration: BoxDecoration(
+                  //                               borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  //                               border: Border.all(
+                  //                                 color: mainColor,
+                  //                                 width: 3,
+                  //                               ),
+                  //                           ),
+                  //                       child:GoogleMap(
+                  //                      mapType: MapType.normal,
+                  //                      initialCameraPosition: controller.initialCameraPOstion,
+                  //                      markers: markers,
+                  //                      onMapCreated: (GoogleMapController controller) {
+                  //                        _controller.complete(controller);
+                  //                        //  final marker = Marker(
+                  //                        //   markerId: MarkerId(CacheHelper.getDataToSharedPrefrence('restaurantBranchID')),
+                  //                        //   position:  LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),
+                  //                        //       double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
+                  //                        //   // icon: BitmapDescriptor.,
+                  //                        //   infoWindow: InfoWindow(
+                  //                        //     title: 'Location',
+                  //                        //     snippet: CacheHelper.getDataToSharedPrefrence('restaurantBranchID'),
+                  //                        //   ),
+                  //                        // );
+                  //                        setState(() {
+                  //                          markers.add(Marker(
+                  //                              markerId: MarkerId("home"), //marker ID is mandate to differentiate from the other markers
+                  //                          position: LatLng(double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLat')),double.parse(CacheHelper.getDataToSharedPrefrence('restaurantBranchLng'))),
+                  //
+                  //                          ));
+                  //                          // marker;
+                  //                        });
+                  //                   }
+                  //                  ))) ;
+                  //
+                  //                  })  ,
 
                   /********sec****/
 
@@ -484,34 +595,47 @@ class _WhereToDeliverScreenState extends State<WhereToDeliverScreen> {
                   // ),
                   // ):SizedBox();}),
 
+                  Button(
+                    text: "check_out".tr,
+                    size: 250,
+                    isFramed: false,
+                    height: 50,
+                    onPressed: () {
+                      if (whereToController.showPickUpBranches.value) {
+                        CacheHelper.saveDataToSharedPrefrence(
+                            'dropDownValuePrice',
+                            whereToController.selectedDropDownValue?.price);
 
-
-
-              Button(text:  "check_out".tr, size: 250, isFramed: false,height: 50
-                ,onPressed: (){
-
-                    if( whereToController.showPickUpBranches.value){
-                      /**************KK****/
-                      if (whereToController.branchDropDownValue!.name == "اختار الفرع") {
-                        Get.defaultDialog(
-                            title: "", content: Text("برجاء اختر الفرع",style: TextStyle(fontSize: 14.sp),));
+                        /**************KK****/
+                        if (whereToController.branchDropDownValue!.name ==
+                            "اختار الفرع") {
+                          Get.defaultDialog(
+                              title: "",
+                              content: Text(
+                                "برجاء اختر الفرع",
+                                style: TextStyle(fontSize: 14.sp),
+                              ));
+                        } else {
+                          Get.to(() => ReceiptScreen(
+                              selectedAreaPrice: whereToController
+                                  .selectedDropDownValue?.price));
+                        }
+                        /**************KK****/
                       } else {
-                        Get.to(() => ReceiptScreen(selectedAreaPrice :whereToController.selectedDropDownValue?.price));
+                        if (whereToController.radioValue.value == "") {
+                          Get.defaultDialog(
+                              title: "",
+                              content: Text(
+                                "please_choose_branch".tr,
+                                style: TextStyle(fontSize: 14.sp),
+                              ));
+                        } else {
+                          Get.to(() => ReceiptScreen(
+                              selectedAreaPrice:(whereToController.selectedAreaPrice.value !=null)?'${whereToController.selectedAreaPrice.value}':0.0));
+                        }
                       }
-                      /**************KK****/
-                    }
-                    else{
-                      if(whereToController.radioValue.value == "")
-                      {
-                        Get.defaultDialog(
-                            title: "", content: Text("please_choose_branch".tr,style: TextStyle(fontSize: 14.sp),));
-                      }else{
-                        Get.to(() => ReceiptScreen( selectedAreaPrice :whereToController.selectedDropDownValue?.price));
-
-                      }
-                    }
-
-                },),
+                    },
+                  ),
 
                   // SizedBox(
                   //   width: 250.w,
@@ -547,9 +671,6 @@ class _WhereToDeliverScreenState extends State<WhereToDeliverScreen> {
                   //         style: TextStyle(color: kPrimaryColor,fontSize: 15.sp),
                   //       ),
                   //     ),
-
-
-
                 ],
               ),
             ),
@@ -559,7 +680,6 @@ class _WhereToDeliverScreenState extends State<WhereToDeliverScreen> {
     );
   }
 }
-
 
 //GetBuilder<WhereToController>(
 //                                 builder: (whereToController) {

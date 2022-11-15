@@ -1,4 +1,5 @@
 import 'package:arrows/constants/colors.dart';
+import 'package:arrows/modules/cart/controllers/cart_controller.dart';
 import 'package:arrows/modules/main_category/controllers/main_categories_controller.dart';
 import 'package:arrows/modules/sub_categories/models/SubCategories.dart';
 import 'package:arrows/modules/sub_categories/services/sub_categories_service.dart';
@@ -10,6 +11,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../helpers/shared_prefrences.dart';
 import '../../cart/models/new_cart_model.dart';
+import '../../product_details/controllers/product_details_controller.dart';
 import '../../product_details/models/drinks_model.dart';
 
 class SubCategoriesController extends GetxController {
@@ -21,7 +23,7 @@ class SubCategoriesController extends GetxController {
   final hasNextPage = true.obs;
   final isLoadMoreRunning = false.obs;
   final RefreshController refreshController = RefreshController();
-  Sizes sizeDropDownValue=Sizes();
+  late Sizes sizeDropDownValue;
   final drinkRadioButtonSelectedValue = ''.obs;
   final typeRadioButtonSelectedValue = ''.obs;
   final valueGroupType = <int>[].obs;
@@ -50,25 +52,27 @@ class SubCategoriesController extends GetxController {
   }
 
   @override
-  void dispose() {
+    dispose() {
     refreshController;
     totalPrice.value=0;
     orderCounter.value=1;
     listOfPComponents;
+    productPrice.value;
       isFirstLoadRunning ;
       hasNextPage ;
       isLoadMoreRunning  ;
-      sizeDropDownValue=Sizes();
       drinkRadioButtonSelectedValue ;
       typeRadioButtonSelectedValue ;
       valueGroupType;
    sizesList;
   other_additional;
     subCategories;
+
     update();
 
   }
   void onClose() {
+    increaseOrderCounter;
      totalPrice.value=0;
      orderCounter.value=1;
      orderPrice.value;
@@ -82,6 +86,7 @@ class SubCategoriesController extends GetxController {
      typeRadioButtonSelectedValue ;
      valueGroupType;
      sizesList;
+     orderCounter.value=1;
      other_additional;
      subCategories;
      update();
@@ -179,15 +184,30 @@ class SubCategoriesController extends GetxController {
 
   final listOfPSpices = <Spices>[];
 
-  increaseOrderCounter(num limit,index) {
+  increaseOrderCounter(num limit) { //6.50
     if (orderCounter.value < 6) {
+      if(totalPrice.value!=productPrice.value * orderCounter.value){
+        var resetPrice=totalPrice.value;
+        resetPrice-=(productPrice.value * orderCounter.value);
+         print('###${resetPrice}');
+         resetPrice=resetPrice/orderCounter.value;
+         print('new rest price ${resetPrice/orderCounter.value}');
+        print('totalPrice.value ${totalPrice.value}');
+        print('productPrice.value ${productPrice.value}');
+        print('orderCounter.value ${orderCounter.value}');
+        print('resetPrice* orderCounter.value ${resetPrice* orderCounter.value}');
+        orderCounter.value++;
+        totalPrice.value=0.0;
+        totalPrice.value = productPrice.value * orderCounter.value + resetPrice* orderCounter.value; //25.50
+        print(totalPrice.value);
+        }
+      else{
       orderCounter.value++;
-      // orderPrice.value = productPrice.value * orderCounter.value;
-      // totalPrice.value = double.parse(products[index].sizes!.first.price!) * orderCounter.value;
       totalPrice.value = productPrice.value * orderCounter.value;
-
       print(totalPrice.value);
-    } else {
+      }
+    }
+    else {
       Get.snackbar('sorry'.tr, 'there_is_no_sufficient_quantity'.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: kPrimaryColor,
@@ -200,12 +220,33 @@ class SubCategoriesController extends GetxController {
 
   decreaseOrderCounter(index) {
      if (orderCounter.value >1) {
-      orderCounter.value--;
-      totalPrice.value -= productPrice.value;
+    //   orderCounter.value--;
+    //   totalPrice.value -= productPrice.value;
+    //   print(totalPrice.value);
+    // }
+       if(totalPrice.value!=productPrice.value * orderCounter.value){
 
-      print(totalPrice.value);
-    }
-    else {
+         var resetPrice=totalPrice.value;
+       resetPrice-=(productPrice.value * orderCounter.value);
+       print('###${resetPrice}');
+       resetPrice=resetPrice/orderCounter.value;
+       print('new rest price ${resetPrice/orderCounter.value}');
+       print('totalPrice.value ${totalPrice.value}');
+       print('productPrice.value ${productPrice.value}');
+       print('orderCounter.value ${orderCounter.value}');
+       print('resetPrice* orderCounter.value ${resetPrice* orderCounter.value}');
+       orderCounter.value--;
+       totalPrice.value=0.0;
+       totalPrice.value = productPrice.value * orderCounter.value + resetPrice* orderCounter.value; //25.50
+       print(totalPrice.value);
+     }
+     else{
+       orderCounter.value--;
+       totalPrice.value = productPrice.value * orderCounter.value;
+       print(totalPrice.value);
+     }
+  }
+  else {
       Get.snackbar('sorry'.tr, 'you_can\'t_order_less_than_one'.tr,
           snackPosition: SnackPosition.TOP,
           backgroundColor: kPrimaryColor,
@@ -217,46 +258,49 @@ class SubCategoriesController extends GetxController {
   }
 
   addToCart(index) async {
-     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateID = await dateFormat.format(DateTime.now());
-     NewCartModel2 oneProduct = NewCartModel2();
+    NewCartModel2 oneProduct = NewCartModel2();
     var x = CacheHelper.getDataToSharedPrefrence('selectedSize');
-     CacheHelper.saveDataToSharedPrefrence('dateOfTheOrder',dateID);
+    CacheHelper.saveDataToSharedPrefrence('dateOfTheOrder', dateID);
     oneProduct = NewCartModel2(
       id: int.tryParse(products[index].id.toString()),
       additional: listOfPublicAdditional,
-      drinks: listOfAdditional[0].name.toString(),
+      drinks: drinkRadioButtonSelectedValue.value.toString(),
       name: products[index].name,
-      components:products[index].components!,
+      components: products[index].components!,
       price: products[index].sizes![0].price,
-      sizes:x, //,
+      sizes: x,
+      //,
       photo: products[index].photo,
       // spices:  , //.
       // spices: products[index].spices!.isNotEmpty ) && (products[index].spices )!=null)? listOfPSpices[0] : empty,
       sauces: listOfSouces.value,
-      quantity:orderCounter.value.toString(),
+      quantity: orderCounter.value.toString(),
       categoryId: products[index].categoryId.toString(),
-       total_price: totalPrice.value.toString(),
+      total_price: totalPrice.value.toString(),
       other_additional: other_additional,
     );
-
-     CacheHelper.getDataToSharedPrefrence('userID') !=null ?  FirebaseDatabase.instance
+    //
+    CacheHelper.getDataToSharedPrefrence('userID') != null ?
+    FirebaseDatabase.instance
         .reference()
         .child('Cart')
         .child(CacheHelper.getDataToSharedPrefrence('restaurantBranchID'))
-        .child(CacheHelper.getDataToSharedPrefrence('userID') )
-        // .child(CacheHelper.loginShared!.phone.toString())
+        .child(CacheHelper.getDataToSharedPrefrence('userID'))
+    // .child(CacheHelper.loginShared!.phone.toString())
         .child(dateID)
         .set(oneProduct.toJson()).then((value) {
-          return     Get.snackbar('Done', 'one item added successfully ',
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: kPrimaryColor,
-              duration: Duration(seconds: 2),
-              dismissDirection: DismissDirection.startToEnd,
-              barBlur: 10,
-              colorText: mainColor);
-    }):printError(info: '___________________');
-     Get.back();
+      return Get.snackbar('Done', 'one item added successfully ',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: kPrimaryColor,
+          duration: Duration(seconds: 2),
+          dismissDirection: DismissDirection.startToEnd,
+          barBlur: 10,
+          colorText: mainColor);
+    }) : printError(info: '___________________');
+    CartController().update();
+    Get.back();
   }
   // addToCart(index) async {
   //
@@ -301,12 +345,11 @@ class SubCategoriesController extends GetxController {
             duration: Duration(seconds: 2),
             dismissDirection: DismissDirection.startToEnd,
             barBlur: 10,
-            colorText: mainColor);
-      }
+            colorText: mainColor);}
 
       }
-      else if (products[index].drinks!.isNotEmpty &&(products[index].drinks )!=null) {
-
+      else if (ProductDetailsController().drinks!.isNotEmpty &&(products[index].drinks )!=null) {
+        //productDetailsController.drinks!.isNotEmpty &&(productDetailsController.drinks
         if (drinkRadioButtonSelectedValue.isEmpty) {
         Get.snackbar('Error', 'you should select a drink ',
             snackPosition: SnackPosition.TOP,
@@ -366,7 +409,7 @@ class SubCategoriesController extends GetxController {
     if (value == true) {
       listOfAdditional.add(item);
       totalPrice.value += num.parse(item.price!)*orderCounter.value;
-      print(totalPrice.value);
+       print(totalPrice.value);
       print('addToDrinks totalPrice.value');
       // listOfAdditional.forEach((element) {
       //   price += double.parse(element.price!);

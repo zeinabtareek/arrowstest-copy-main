@@ -22,9 +22,10 @@ class UserAddress {
       this.landmark = '',
       this.checked,this.area});
 
-  UserAddress.fromJson(Map<dynamic, dynamic> snapshot) {
+  UserAddress.fromJson(Map<dynamic, dynamic> json) {
 
-     Map<dynamic, dynamic> json = snapshot.values as  Map<dynamic, dynamic> ;
+     // Map<dynamic, dynamic> json = {};
+     // Map<dynamic, dynamic> json = snapshot.values as  Map<dynamic, dynamic> ;
 
     address = json['address'];
     lat = json['lat'];
@@ -39,8 +40,8 @@ class UserAddress {
         : null;
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+  Map<dynamic, dynamic> toJson() {
+    final Map<dynamic, dynamic> data = new Map<dynamic, dynamic>();
     data['address'] = this.address;
     data['lat'] = this.lat;
     data['lng'] = this.lng;

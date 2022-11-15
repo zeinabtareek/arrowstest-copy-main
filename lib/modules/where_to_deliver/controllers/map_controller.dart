@@ -40,10 +40,12 @@ class MapController extends GetxController {
   // Set<Marker> markers = Set<Marker>();
 final myMarkerId=1;
    LatLng? currentLocation = LatLng(0.0, 0.0);
+  late Future mapFuture;
+  onInit() async {
+    mapFuture= Future.delayed(Duration(milliseconds: 250), () => true);
 
-  Future<void> onInit() async {
-    markers.add(
-      Marker(markerId: MarkerId(myMarkerId.toString()), position: currentLocation!),
+    markers.assignAll(
+      [Marker(markerId: MarkerId(myMarkerId.toString()), position: currentLocation!),]
     );
     address.street;
     getCurrentLocation();
@@ -62,24 +64,24 @@ final myMarkerId=1;
     markers.clear();
     controller;
     currentLocation;
-    address;
+    address=Placemark();
 
     super.onClose();
   }
 
-  @override
+  // @override
   void dispose() {
     markers[myMarkerId] = Marker(markerId: MarkerId(myMarkerId.toString()), visible: false);
-
-    markers.clear();
-    // markers.removeAt(myMarkerId);
+  //
+  //   markers.clear();
+  //   // markers.removeAt(myMarkerId);
     showPinsOnMap(currentLocation!);
     getUserLocation(currentLocation);
-    controller;
-    currentLocation;
-    address;
-
-    super.dispose();
+  //   controller;
+  //   currentLocation;
+  //   address;
+  //
+  //   super.dispose();
   }
 
   Completer<GoogleMapController> _controller = Completer();
@@ -165,9 +167,9 @@ final myMarkerId=1;
   //   }
   // }
 
-  showPinsOnMap(currentLocation) {
+  showPinsOnMap(currentLocation)  {
     try {
-      markers.add(Marker(
+       markers.add(Marker(
           markerId: MarkerId('sourcePin'),
           position: currentLocation,
           infoWindow: InfoWindow(title: locality, snippet: "Pick Up Locaation"),

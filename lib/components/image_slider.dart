@@ -1,10 +1,9 @@
 import 'package:arrows/constants/colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_controller.dart';
+  import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get.dart';
 
 class ImageSlider extends StatelessWidget {
   late final bool autoPlay;

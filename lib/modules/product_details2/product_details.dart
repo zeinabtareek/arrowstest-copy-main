@@ -26,9 +26,12 @@ class ProductDetails extends StatelessWidget {
             subCategoriesController.products[index].sizes![0].price!);
     subCategoriesController.totalPrice.value =
         subCategoriesController.productPrice.value;
+    subCategoriesController.orderCounter.value=1;
     subCategoriesController.sizeDropDownValue =
     subCategoriesController.products[index].sizes![0];
-    return  WillPopScope(
+
+    productDetailsController.otherAddition.value = List.filled(productDetailsController.drinks!.length, false);
+     return  WillPopScope(
         onWillPop: ()async{
       return disposeMethod();
     },
@@ -83,7 +86,7 @@ class ProductDetails extends StatelessWidget {
                     style: TextStyle(fontSize: 20.sp, color: mainColor),
                   ),
                   subCategoriesController.totalPrice.value == 0
-                      ? Text("   ${subCategoriesController.products[index].sizes![0].price}  ${'coin_jordan'.tr}    ",
+                      ? Text("   ${subCategoriesController.productPrice.value}  ${'coin_jordan'.tr}    ",
                           style: TextStyle(
                             fontSize: 20.sp,
                             color: mainColor,
@@ -199,7 +202,7 @@ class ProductDetails extends StatelessWidget {
                               size: 20,
                             ),
                             onPressed: () {
-                              controller.increaseOrderCounter(controller.products[index].availability!,index);
+                              controller.increaseOrderCounter(controller.products[index].availability!);
                               CacheHelper.saveDataToSharedPrefrence('limit', controller.products[index].availability!);
 
                             },
@@ -256,52 +259,91 @@ class ProductDetails extends StatelessWidget {
                                       ));
                                 }).toList(),
                                 onChanged: (newValue) {
+                                  /*****anotherTry****/
+                                  Sizes size = newValue as Sizes;
+                                  print(' product price at begining =${subCategoriesController.productPrice.value}');
+                                  print(' product price newValue =${size.price}');
+                                  if(double.parse(size.price.toString())== double.parse(subCategoriesController.productPrice.value.toString())){
+                                    print('they are the same');
+                                  }
+                                  else{
+                                    print('they are not the same');
+                                    // print(double.parse(size.price.toString())-double.parse(subCategoriesController.productPrice.value.toString()));
+                                  subCategoriesController.totalPrice.value -=
+                                  (double.parse(subCategoriesController.productPrice.value.toString())
+                                      *subCategoriesController.orderCounter.value);
+                                  print('subCategoriesController.totalPrice.value after min ${subCategoriesController.totalPrice.value}');
+                                    subCategoriesController.totalPrice.value +=
+                                    (double.parse(size.price.toString())
+                                        *subCategoriesController.orderCounter.value);
+                                    print('subCategoriesController.totalPrice.value after add ${subCategoriesController.totalPrice.value}');
+                                    subCategoriesController.productPrice.value==size.price ;
+                                    subCategoriesController.productPrice.value =double.parse(size.price !);
+                                    print('--------------new value of productPrice.value ${subCategoriesController.productPrice.value}');
+                                    print('--------------new value of size.price ${size.price}');
+                                  }
+                                  /*****anotherTry****/
+
 
                                   // subCategoriesController.selectSize(newValue,index);
-                                  Sizes size = newValue as Sizes;
-                                  if (subCategoriesController.productPrice.value != size.price) {
-                                  // if (subCategoriesController.products[index].sizes!.first.price != size.price) {
-                                    subCategoriesController.productPrice.value=double.parse(newValue.price!) ;
-                                    subCategoriesController.products[index].sizes!.first.price!=newValue.price;
-                                  var total =subCategoriesController.totalPrice.value + (double.parse(size.price!)*subCategoriesController.orderCounter.value);
-                                  print('total1   ${total}');
-                                    total -= ((double.parse(newValue.price!)*subCategoriesController.orderCounter.value));
-                                    print('total2  ${total}');
-                                    subCategoriesController.totalPrice.value -= total-(double.parse(size.price!)+double.parse(newValue.price!)*subCategoriesController.orderCounter.value );
-                                    print('total3  ${subCategoriesController.totalPrice.value-double.parse(newValue.price!)}');
-                                    subCategoriesController.totalPrice.value=subCategoriesController.totalPrice.value-double.parse(newValue.price!);
-                                    subCategoriesController.products[index].sizes!.first.price == size.price;
-                                     /********rightSoultion***************/
-                                       // Sizes size = newValue as Sizes;
-  //                                 if (subCategoriesController.products[index].sizes!.first.price != size.price) {
-  //                                   size.price==newValue.price;
-  //
-  //                                 var total =subCategoriesController.totalPrice.value + (double.parse(size.price!)*subCategoriesController.orderCounter.value);
-  //                                 print('total1   ${total}');
-  //
-  //                                 total -= ((double.parse(newValue.price!)*subCategoriesController.orderCounter.value));
-  //                                 print('total2  ${total}');
-  //                                 subCategoriesController.totalPrice.value -= total-(double.parse(size.price!)+double.parse(newValue.price!)*subCategoriesController.orderCounter.value );
-  //                                 print('total3  ${subCategoriesController.totalPrice.value-double.parse(newValue.price!)}');
-  //                                 subCategoriesController.totalPrice.value=subCategoriesController.totalPrice.value-double.parse(newValue.price!);
-  //                                 subCategoriesController.products[index].sizes!.first.price == size.price;
-                                     /********rightSoultion***************/
-                                    subCategoriesController.products[index].sizes!.first.price == size.price;
-                                    print('------------------');
-                                    print(size.price);
-                                    subCategoriesController.sizesList.add(Sizes(size:newValue.size,price: newValue.price ));
-                                    print('##########${newValue.price}');
-                                    CacheHelper.saveDataToSharedPrefrence('selectedSize', size.size);
-                                   var x= CacheHelper.getDataToSharedPrefrence('selectedSize');
-                                     print(subCategoriesController.products[index].sizes!.first.price);
-                                    print('---------selectedSize-----$x----');
-                                  }
-                                /***new***/
-                                  // productDetailsController.value=productDetailsController.selectedSize;
 
-                                },
+
+                                  // if (subCategoriesController.productPrice.value != size.price) {
+                                  //
+                                  //   print('total4 ${subCategoriesController.totalPrice.value - ( subCategoriesController.productPrice.value*subCategoriesController.orderCounter.value)+(double.parse(size.price!)*subCategoriesController.orderCounter.value)}');
+                                  //  var y=subCategoriesController.totalPrice.value - ( subCategoriesController.productPrice.value*subCategoriesController.orderCounter.value)+(double.parse(size.price!)*subCategoriesController.orderCounter.value);
+                                  //   print('total5 ${subCategoriesController.totalPrice.value -=  y}');
+                                  //
+                                  //   // if (subCategoriesController.products[index].sizes!.first.price != size.price) {
+                                  //   subCategoriesController.productPrice.value=double.parse(newValue.price!) ;
+                                  //   subCategoriesController.products[index].sizes!.first.price!=newValue.price;
+                                  //   var total =subCategoriesController.totalPrice.value + (double.parse(size.price!)*subCategoriesController.orderCounter.value);
+                                  //   print('total1   ${total}');
+                                  //   total -= ((double.parse(newValue.price!)*subCategoriesController.orderCounter.value));
+                                  //   print('total2  ${total}');
+                                  //   subCategoriesController.totalPrice.value -= total-(double.parse(size.price!)+ double.parse(newValue.price!)*subCategoriesController.orderCounter.value );
+                                  //   print('total3  ${subCategoriesController.totalPrice.value }');
+                                  //     // subCategoriesController.totalPrice.value=subCategoriesController.totalPrice.value-double.parse(newValue.price!);
+                                  //   subCategoriesController.products[index].sizes!.first.price == size.price;
+                                  //   /********rightSoultion***************/
+                                  //   // Sizes size = newValue as Sizes;
+                                  //   //                                 if (subCategoriesController.products[index].sizes!.first.price != size.price) {
+                                  //   //                                   size.price==newValue.price;
+                                  //   //
+                                  //   //                                 var total =subCategoriesController.totalPrice.value + (double.parse(size.price!)*subCategoriesController.orderCounter.value);
+                                  //   //                                 print('total1   ${total}');
+                                  //   //
+                                  //   //                                 total -= ((double.parse(newValue.price!)*subCategoriesController.orderCounter.value));
+                                  //   //                                 print('total2  ${total}');
+                                  //   //                                 subCategoriesController.totalPrice.value -= total-(double.parse(size.price!)+double.parse(newValue.price!)*subCategoriesController.orderCounter.value );
+                                  //   //                                 print('total3  ${subCategoriesController.totalPrice.value-double.parse(newValue.price!)}');
+                                  //   //                                 subCategoriesController.totalPrice.value=subCategoriesController.totalPrice.value-double.parse(newValue.price!);
+                                  //   //                                 subCategoriesController.products[index].sizes!.first.price == size.price;
+                                  //   /********rightSoultion***************/
+                                  //   subCategoriesController.products[index].sizes!.first.price == size.price;
+                                  //   print('------------------');
+                                  //   print(size.price);
+                                  //   subCategoriesController.sizesList.add(Sizes(size:newValue.size,price: newValue.price ));
+                                  //   print('##########${newValue.price}');
+                                  //   CacheHelper.saveDataToSharedPrefrence('selectedSize', size.size);
+                                  //   var x= CacheHelper.getDataToSharedPrefrence('selectedSize');
+                                  //   print(subCategoriesController.products[index].sizes!.first.price);
+                                  //   print('---------selectedSize-----$x----');
+                                  //   subCategoriesController.productPrice.value==size.price;
+                                  //   // subCategoriesController.productPrice.value=size.price;
+                                  //   print('total 4 total price=${subCategoriesController.productPrice.value}');
+                                  // }
+                                  // /***new***/
+                                  // // productDetailsController.value=productDetailsController.selectedSize;
+                                  // else{
+                                  //   return;
+                                  // }
+
+
+    },
 
                                 // value: productDetailsController.value,
+
 
                               )));
                         }), ],
@@ -386,7 +428,6 @@ class ProductDetails extends StatelessWidget {
                                                       List.filled(controller.products[index].spices!.length, 0);
                                                   return CustomRadioButton(
                                                       isPayment: false,
-
                                                       isDrinks: false,
                                                       controller: controller,
                                                       value: controller.products[index].spices![i].name!.tr,
@@ -404,7 +445,7 @@ class ProductDetails extends StatelessWidget {
                               ],
                             ) : SizedBox(),
                     ),
-                    /************************************BasicDrinks*********************************/
+                    /************************************FreeDrinks*********************************/
                         Obx(() => ((subCategoriesController.products[index].drinks!.isNotEmpty) &&(subCategoriesController.products[index].drinks )!=null)
                             ?
                         Column(
@@ -447,9 +488,8 @@ class ProductDetails extends StatelessWidget {
                                                               .drinks![i]
                                                               .name.toString(),
                                                       onChanged: (v) {
-                                                        subCategoriesController
-                                                            .selectDrinkRadioButton(
-                                                                v);
+                                                        subCategoriesController.selectDrinkRadioButton(v);
+
                                                       },
                                                       textOfTheRadio:
                                                           subCategoriesController
@@ -691,3 +731,5 @@ disposeMethod() {
   // productDetailsController.onClose();
 
 }}
+
+
